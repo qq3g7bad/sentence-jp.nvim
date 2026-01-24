@@ -2,7 +2,7 @@
 
 **日本語**と**英語**の両方に対応したスマートなテキストオブジェクトとモーションを提供する Neovim プラグインです。
 
-## 機能
+## ✨ 機能
 
 - **日英対応**
   - 日本語 (`。！？．`) と英語 (`. ! ?`) を自動的に処理
@@ -11,7 +11,7 @@
 - **テキストオブジェクト** `is` と `as` が両言語で動作
 - **モーションコマンド** `(` と `)` が両言語で動作
 
-## 動作原理
+## ⚙️ 動作原理
 
 プラグインは日本語と英語の両方の文末を検索します:
 
@@ -33,11 +33,11 @@
 
 どの言語を使っているか意識する必要はありません！
 
-## 必要要件
+## 📋 必要要件
 
 - Neovim >= 0.7.0
 
-## インストール
+## 📦 インストール
 
 ### lazy.nvim
 
@@ -50,7 +50,7 @@
 }
 ```
 
-## 使い方
+## 🚀 使い方
 
 ### 基本設定
 
@@ -58,16 +58,10 @@
 require('sentence-jp').setup()
 ```
 
-これだけです！日本語と英語の両方で動作します。
-
-以下が使えるようになります：
-
 - `is` / `as` - テキストオブジェクト (両言語で動作)
 - `)` / `(` - モーション (両言語で動作)
 
 ### テキストオブジェクトの例
-
-次のような混在テキストがあるとします：
 
 ```
 おはようございます。Hello world. さようなら。
@@ -84,8 +78,6 @@ require('sentence-jp').setup()
 
 ### モーションの例
 
-次のようなテキストがあるとします：
-
 ```
 First. 最初の文。次の文。Last.
 ```
@@ -95,7 +87,7 @@ First. 最初の文。次の文。Last.
 - `)` を押す → "Last" に移動 (最も近い境界は 。)
 - `(` を押す → 前の文に戻る
 
-### オペレータ待機モード
+### モーション x オペレータ
 
 モーションとオペレータを組み合わせる：
 
@@ -104,23 +96,19 @@ First. 最初の文。次の文。Last.
 - `y)` - 次の文までヤンク
 - `v)` - 次の文まで視覚選択
 
-## 設定
+## ⚙️ 設定
 
 ### カスタム句読点
-
-句読点を追加したい場合：
 
 ```lua
 require('sentence-jp').setup({
   punctuation = {
-    sentence_endings = '[。！？．.!?‼⁉]',  -- 二重記号を追加
+    sentence_endings = '[。！？．.!?‼⁉]',  -- 絵文字を追加
   },
 })
 ```
 
 ### 異なるモーションキー
-
-モーションに別のキーを使いたい場合：
 
 ```lua
 require('sentence-jp').setup({
@@ -144,7 +132,7 @@ require('sentence-jp').setup({
 })
 ```
 
-## トラブルシューティング
+## 🔧 トラブルシューティング
 
 ### テキストオブジェクトが動作しない
 
@@ -158,7 +146,7 @@ require('sentence-jp').setup({
 2. 全角スペース処理を確認: `include_fullwidth_space = true`
 3. まず純粋な日本語または純粋な英語のテキストでテストしてください
 
-## クレジット
+## 🙏 クレジット
 
 - [jasentence.vim](https://github.com/deton/jasentence.vim)
 
@@ -171,7 +159,7 @@ require('sentence-jp').setup({
 
 A Neovim plugin that provides smart sentence text objects and motions for **both Japanese and English**. Just install and use - no configuration needed!
 
-## Features
+## ✨ Features
 
 - **Smart multi-language sentence detection**
   - Automatically handles Japanese (`。！？．`) and English (`. ! ?`)
@@ -180,7 +168,7 @@ A Neovim plugin that provides smart sentence text objects and motions for **both
 - **Text objects** `is` and `as` work for BOTH languages
 - **Motion commands** `(` and `)` work for BOTH languages
 
-## How It Works
+## ⚙️ How It Works
 
 The plugin searches for BOTH Japanese and English punctuation:
 
@@ -202,11 +190,11 @@ Whichever punctuation is NEAREST to your cursor is used for boundaries.
 
 You don't need to think about which language you're in!
 
-## Requirements
+## 📋 Requirements
 
 - Neovim >= 0.7.0
 
-## Installation
+## 📦 Installation
 
 ### lazy.nvim
 
@@ -219,7 +207,7 @@ You don't need to think about which language you're in!
 }
 ```
 
-## Usage
+## 🚀 Usage
 
 ### Basic Setup
 
@@ -273,7 +261,7 @@ Combine motions with operators:
 - `y)` - yank to next sentence
 - `v)` - visually select to next sentence
 
-## Configuration
+## ⚙️ Configuration
 
 ### Custom Punctuation
 
@@ -313,7 +301,7 @@ require('sentence-jp').setup({
 })
 ```
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
 ### Text objects not working
 
@@ -327,11 +315,11 @@ require('sentence-jp').setup({
 2. Verify fullwidth space handling: `include_fullwidth_space = true`
 3. Test with pure Japanese or pure English text first
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Credits
+## 🙏 Credits
 
 - Inspired by [jasentence.vim](https://github.com/deton/jasentence.vim) by deton.
 
