@@ -1,0 +1,353 @@
+*sentence-jp.txt*    Smart sentence text objects for Japanese and English
+
+==============================================================================
+CONTENTS                                              *sentence-jp-contents*
+
+    1. Introduction ........................... |sentence-jp-introduction|
+    2. Requirements ........................... |sentence-jp-requirements|
+    3. Installation ........................... |sentence-jp-installation|
+    4. Configuration .......................... |sentence-jp-configuration|
+    5. Text Objects ........................... |sentence-jp-text-objects|
+    6. Motions ................................ |sentence-jp-motions|
+    7. Examples ............................... |sentence-jp-examples|
+    8. Functions .............................. |sentence-jp-functions|
+    9. Troubleshooting ........................ |sentence-jp-troubleshooting|
+
+==============================================================================
+INTRODUCTION                                      *sentence-jp-introduction*
+
+sentence-jp.nvim provides smart sentence text objects and motions that work
+for BOTH Japanese and English. The plugin automatically detects the NEAREST
+sentence boundary regardless of language.
+
+Features:
+  - Smart multi-language sentence detection
+  - Text objects "is" and "as" work for BOTH languages
+  - Motion commands "(" and ")" work for BOTH languages
+  - Finds nearest punctuation (Japanese OR English)
+  - which-key.nvim support - Shows helpful descriptions
+  - Standalone - No external dependencies required
+  - No configuration needed - just install and use!
+
+Supported punctuation:
+  - Japanese: 。！？． (period, exclamation, question, fullwidth period)
+  - English: .!? (period, exclamation, question)
+
+==============================================================================
+REQUIREMENTS                                      *sentence-jp-requirements*
+
+  - Neovim >= 0.7.0
+
+==============================================================================
+INSTALLATION                                      *sentence-jp-installation*
+
+Using lazy.nvim: >
+    {
+      'username/sentence-jp.nvim',
+      config = function()
+        require('sentence-jp').setup()
+      end,
+    }
+<
+
+Using packer.nvim: >
+    use {
+      'username/sentence-jp.nvim',
+      config = function()
+        require('sentence-jp').setup()
+      end,
+    }
+<
+
+After installation, you must call setup() to activate the plugin: >
+    require('sentence-jp').setup()
+<
+
+That's it! Now "is", "as", ")", and "(" work for both languages.
+
+==============================================================================
+CONFIGURATION                                    *sentence-jp-configuration*
+
+                                                         *sentence-jp.setup()*
+setup({config})
+    Initialize the plugin with optional configuration.
+
+    Default configuration: >
+    {
+      textobject = {
+        enable = true,
+      },
+      motions = {
+        enable = true,
+        next_sentence = ')',
+        prev_sentence = '(',
+      },
+      punctuation = {
+        sentence_endings = '[。！？．.!?]',
+      },
+      include_fullwidth_space = true,
+    }
+<
+
+Configuration options:
+
+    textobject.enable
+        Enable text object functionality (default: true)
+
+    motions.enable
+        Enable motion commands (default: true)
+
+    motions.next_sentence
+        Key mapping for next sentence motion (default: ')')
+
+    motions.prev_sentence
+        Key mapping for previous sentence motion (default: '(')
+
+    punctuation.sentence_endings
+        Pattern matching sentence-ending punctuation
+        (default: '[。！？．.!?]')
+        Includes both Japanese and English punctuation.
+        Like English (. ! ?), only these marks end sentences.
+        Commas (、) are ignored, just like English commas (,).
+
+    include_fullwidth_space
+        Treat fullwidth space (　) as whitespace (default: true)
+
+Examples: >
+    -- Add more punctuation marks
+    require('sentence-jp').setup({
+      punctuation = {
+        sentence_endings = '[。！？．.!?‼⁉]',  -- Add double marks
+      },
+    })
+
+    -- Custom motion keys
+    require('sentence-jp').setup({
+      motions = {
+        next_sentence = ']s',
+        prev_sentence = '[s',
+      },
+    })
+
+    -- Disable features
+    require('sentence-jp').setup({
+      textobject = { enable = false },
+      motions = { enable = false },
+    })
+<
+
+==============================================================================
+TEXT OBJECTS                                      *sentence-jp-text-objects*
+
+                                                                        *v_is*
+is                      "inner sentence" - Select sentence INCLUDING the
+                        punctuation mark (matches Vim's default behavior).
+                        Works for both Japanese and English.
+                        Finds nearest sentence boundary.
+
+                        Works in visual and operator-pending mode.
+
+                                                                        *v_as*
+as                      "around sentence" - Select sentence including
+                        punctuation AND trailing whitespace. Works for both
+                        Japanese and English. Finds nearest sentence boundary.
+
+                        Works in visual and operator-pending mode.
+
+The plugin searches for the NEAREST punctuation mark from cursor:
+  Japanese: 。！？． (period, exclamation, question, fullwidth period)
+  English:  .!? (period, exclamation, question)
+
+Examples:
+    Given: これは日本語です。This is English. また日本語です。
+
+    Cursor on "English":
+    vis     Select "This is English." (includes punctuation)
+    vas     Select "This is English. " (includes punctuation + space)
+
+    Cursor on "日本語":
+    vis     Select "これは日本語です。" (includes punctuation)
+    vas     Select "これは日本語です。 " (includes punctuation + space)
+
+    Operations:
+    dis     Delete sentence including punctuation
+    cas     Change sentence including punctuation
+    yis     Yank sentence including punctuation
+    das     Delete sentence with punctuation and trailing space
+    yas     Yank sentence with punctuation and trailing space
+
+==============================================================================
+MOTIONS                                                *sentence-jp-motions*
+
+                                                                          *)*
+)                       Move forward to the beginning of the next sentence.
+                        Works for both Japanese and English. Finds nearest
+                        sentence boundary. Accepts a count.
+
+                        Works in normal, visual, and operator-pending mode.
+
+                                                                          *(*
+(                       Move backward to the beginning of the previous
+                        sentence. Works for both Japanese and English. Finds
+                        nearest sentence boundary. Accepts a count.
+
+                        Works in normal, visual, and operator-pending mode.
+
+Examples:
+    Given: First. 最初の文。次の文。Last.
+
+    Cursor on "First":
+    )       Move to "最初" (nearest boundary is .)
+    )       Move to "次" (nearest boundary is 。)
+    )       Move to "Last" (nearest boundary is 。)
+    (       Move back to previous sentence
+    2)      Move two sentences forward
+
+Operator-pending mode:
+    d)      Delete to next sentence
+    c(      Change to previous sentence
+    y)      Yank to next sentence
+    v)      Visually select to next sentence
+
+==============================================================================
+EXAMPLES                                              *sentence-jp-examples*
+
+Mixed language text: >
+    " Buffer: おはようございます。Hello world. さようなら。
+
+    " Cursor on "Hello"
+    vis     " Select: Hello world. (includes period)
+    vas     " Select: Hello world. (includes period + space)
+    dis     " Delete: Hello world. (including period)
+    cas     " Change entire sentence (including period)
+
+    " Cursor on "おはよう"
+    vis     " Select: おはようございます。 (includes 。)
+    )       " Move to "さようなら"
+<
+
+Pure Japanese: >
+    " Buffer: 最初の文です。次の文です。最後の文です。
+
+    " Cursor on "最初"
+    vis     " Select: 最初の文です
+    )       " Move to "次の文です"
+    2)      " Move to "最後の文です"
+    (       " Move back to "次の文です"
+<
+
+Pure English: >
+    " Buffer: First sentence. Second sentence. Third sentence.
+
+    " Cursor on "First"
+    vis     " Select: First sentence
+    )       " Move to "Second sentence"
+<
+
+Combining with operators: >
+    d)      " Delete from cursor to next sentence
+    c(      " Change from previous sentence to cursor
+    y)      " Yank from cursor to next sentence
+    v)      " Visually select to next sentence
+<
+
+Advanced configuration: >
+    -- Add emoji punctuation variants
+    require('sentence-jp').setup({
+      punctuation = {
+        sentence_endings = '[。！？．.!?‼⁉⁈]',
+      },
+    })
+
+    -- Use different motion keys
+    require('sentence-jp').setup({
+      motions = {
+        next_sentence = ']s',
+        prev_sentence = '[s',
+      },
+    })
+<
+
+==============================================================================
+FUNCTIONS                                            *sentence-jp-functions*
+
+                                                   *sentence-jp.get_config()*
+get_config()
+    Returns the current configuration table.
+
+    Example: >
+        local config = require('sentence-jp').get_config()
+        print(vim.inspect(config))
+<
+
+                                                  *sentence-jp.find_sentence()*
+find_sentence()
+    Find the boundaries of the sentence around the current cursor position.
+    Works for both Japanese and English sentences.
+
+    Returns a table with the following structure: >
+        {
+          start = {line, col},      -- Start of sentence
+          end_inner = {line, col},  -- End before punctuation
+          end_around = {line, col}, -- End after punctuation
+        }
+<
+    Returns nil if no sentence boundary is found.
+
+    Example: >
+        local boundaries = require('sentence-jp').find_sentence()
+        if boundaries then
+          print('Sentence start:', boundaries.start[1], boundaries.start[2])
+          print('Inner end:', boundaries.end_inner[1], boundaries.end_inner[2])
+        end
+<
+
+==============================================================================
+TROUBLESHOOTING                              *sentence-jp-troubleshooting*
+
+Text objects not working~
+
+1. Verify setup() was called: >
+    :lua print(vim.inspect(require('sentence-jp').get_config()))
+<
+
+2. Check for conflicting keymaps: >
+    :verbose map is
+    :verbose map as
+<
+
+3. Verify the plugin is loaded correctly: >
+    :lua print(vim.inspect(require('sentence-jp').find_sentence()))
+<
+
+Motions jumping to wrong places~
+
+1. Verify your text contains sentence-ending punctuation (。！？．.!?)
+
+2. Check fullwidth space handling: >
+    require('sentence-jp').setup({
+      include_fullwidth_space = true,
+    })
+<
+
+3. Test with simple text first (pure Japanese or pure English)
+
+4. Check that commas (、,) are NOT being treated as sentence endings
+   (they should be ignored, which is correct)
+
+Plugin not loading~
+
+1. Ensure Neovim version is >= 0.7.0: >
+    :version
+<
+
+2. Check for errors: >
+    :messages
+<
+
+3. Verify plugin is in the correct directory
+
+4. Ensure setup() was called in your config
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

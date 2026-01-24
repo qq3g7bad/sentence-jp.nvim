@@ -1,0 +1,356 @@
+*sentence-jp.jax*    日本語と英語のためのスマート文テキストオブジェクト
+
+==============================================================================
+目次                                                  *sentence-jp-contents*
+
+    1. はじめに ............................... |sentence-jp-introduction|
+    2. 必要要件 ............................... |sentence-jp-requirements|
+    3. インストール ........................... |sentence-jp-installation|
+    4. 設定 ................................... |sentence-jp-configuration|
+    5. テキストオブジェクト ................... |sentence-jp-text-objects|
+    6. モーション ............................. |sentence-jp-motions|
+    7. 使用例 ................................. |sentence-jp-examples|
+    8. 関数 ................................... |sentence-jp-functions|
+    9. トラブルシューティング ................. |sentence-jp-troubleshooting|
+
+==============================================================================
+はじめに                                          *sentence-jp-introduction*
+
+sentence-jp.nvim は日本語と英語の**両方**で動作するスマートな文テキスト
+オブジェクトとモーションを提供します。プラグインは言語に関係なく、最も近い
+文の境界を自動的に検出します。
+
+機能:
+  - スマートな多言語文検出
+  - テキストオブジェクト "is" と "as" が両言語で動作
+  - モーションコマンド "(" と ")" が両言語で動作
+  - 最も近い句読点を検出（日本語または英語）
+  - which-key.nvim サポート - 役立つ説明を表示
+  - スタンドアロン - 外部依存関係不要
+  - 設定不要 - インストールするだけで使えます！
+
+サポートする句読点:
+  - 日本語: 。！？． (句点、感嘆符、疑問符、全角ピリオド)
+  - 英語: .!? (ピリオド、感嘆符、疑問符)
+
+==============================================================================
+必要要件                                          *sentence-jp-requirements*
+
+  - Neovim >= 0.7.0
+
+==============================================================================
+インストール                                      *sentence-jp-installation*
+
+lazy.nvim を使用する場合: >
+    {
+      'username/sentence-jp.nvim',
+      config = function()
+        require('sentence-jp').setup()
+      end,
+    }
+<
+
+packer.nvim を使用する場合: >
+    use {
+      'username/sentence-jp.nvim',
+      config = function()
+        require('sentence-jp').setup()
+      end,
+    }
+<
+
+インストール後、プラグインを有効化するために setup() を呼び出す必要があり
+ます: >
+    require('sentence-jp').setup()
+<
+
+これだけです！これで "is"、"as"、")"、"(" が両言語で動作します。
+
+==============================================================================
+設定                                              *sentence-jp-configuration*
+
+                                                         *sentence-jp.setup()*
+setup({config})
+    オプションの設定でプラグインを初期化します。
+
+    デフォルト設定: >
+    {
+      textobject = {
+        enable = true,
+      },
+      motions = {
+        enable = true,
+        next_sentence = ')',
+        prev_sentence = '(',
+      },
+      punctuation = {
+        sentence_endings = '[。！？．.!?]',
+      },
+      include_fullwidth_space = true,
+    }
+<
+
+設定オプション:
+
+    textobject.enable
+        テキストオブジェクト機能を有効化 (デフォルト: true)
+
+    motions.enable
+        モーションコマンドを有効化 (デフォルト: true)
+
+    motions.next_sentence
+        次の文へのモーションのキーマッピング (デフォルト: ')')
+
+    motions.prev_sentence
+        前の文へのモーションのキーマッピング (デフォルト: '(')
+
+    punctuation.sentence_endings
+        文末句読点にマッチするパターン
+        (デフォルト: '[。！？．.!?]')
+        日本語と英語の両方の句読点を含みます。
+        英語 (. ! ?) と同様に、これらの記号のみが文を終了します。
+        読点 (、) は英語のカンマ (,) と同様に無視されます。
+
+    include_fullwidth_space
+        全角スペース (　) を空白として扱う (デフォルト: true)
+
+例: >
+    -- 句読点を追加
+    require('sentence-jp').setup({
+      punctuation = {
+        sentence_endings = '[。！？．.!?‼⁉]',  -- 二重記号を追加
+      },
+    })
+
+    -- カスタムモーションキー
+    require('sentence-jp').setup({
+      motions = {
+        next_sentence = ']s',
+        prev_sentence = '[s',
+      },
+    })
+
+    -- 機能を無効化
+    require('sentence-jp').setup({
+      textobject = { enable = false },
+      motions = { enable = false },
+    })
+<
+
+==============================================================================
+テキストオブジェクト                              *sentence-jp-text-objects*
+
+                                                                        *v_is*
+is                      "inner sentence" - 句読点を**含む**文を選択します
+                        (Vim のデフォルト動作と一致)。
+                        日本語と英語の両方で動作します。
+                        最も近い文の境界を検出します。
+
+                        ビジュアルモードとオペレータ待機モードで動作します。
+
+                                                                        *v_as*
+as                      "around sentence" - 句読点と後続の空白を含む文を
+                        選択します。日本語と英語の両方で動作します。
+                        最も近い文の境界を検出します。
+
+                        ビジュアルモードとオペレータ待機モードで動作します。
+
+プラグインはカーソルから最も近い句読点を検索します:
+  日本語: 。！？． (句点、感嘆符、疑問符、全角ピリオド)
+  英語:   .!? (ピリオド、感嘆符、疑問符)
+
+例:
+    テキスト: これは日本語です。This is English. また日本語です。
+
+    カーソルが "English" 上にある場合:
+    vis     "This is English." を選択 (句読点を含む)
+    vas     "This is English. " を選択 (句読点とスペースを含む)
+
+    カーソルが "日本語" 上にある場合:
+    vis     "これは日本語です。" を選択 (句読点を含む)
+    vas     "これは日本語です。 " を選択 (句読点とスペースを含む)
+
+    操作:
+    dis     句読点を含む文を削除
+    cas     句読点を含む文を変更
+    yis     句読点を含む文をヤンク
+    das     句読点と後続のスペースを含む文を削除
+    yas     句読点と後続のスペースを含む文をヤンク
+
+==============================================================================
+モーション                                            *sentence-jp-motions*
+
+                                                                          *)*
+)                       次の文の先頭に前方移動します。
+                        日本語と英語の両方で動作します。最も近い文の境界を
+                        検出します。カウントを受け付けます。
+
+                        ノーマル、ビジュアル、オペレータ待機モードで動作
+                        します。
+
+                                                                          *(*
+(                       前の文の先頭に後方移動します。
+                        日本語と英語の両方で動作します。最も近い文の境界を
+                        検出します。カウントを受け付けます。
+
+                        ノーマル、ビジュアル、オペレータ待機モードで動作
+                        します。
+
+例:
+    テキスト: First. 最初の文。次の文。Last.
+
+    カーソルが "First" 上にある場合:
+    )       "最初" に移動 (最も近い境界は .)
+    )       "次" に移動 (最も近い境界は 。)
+    )       "Last" に移動 (最も近い境界は 。)
+    (       前の文に戻る
+    2)      2文前方に移動
+
+オペレータ待機モード:
+    d)      次の文まで削除
+    c(      前の文まで変更
+    y)      次の文までヤンク
+    v)      次の文まで視覚選択
+
+==============================================================================
+使用例                                                *sentence-jp-examples*
+
+混在言語テキスト: >
+    " バッファ: おはようございます。Hello world. さようなら。
+
+    " カーソルが "Hello" 上にある場合
+    vis     " 選択: Hello world. (ピリオドを含む)
+    vas     " 選択: Hello world. (ピリオドとスペースを含む)
+    dis     " 削除: Hello world. (ピリオドを含む)
+    cas     " 文全体を変更 (ピリオドを含む)
+
+    " カーソルが "おはよう" 上にある場合
+    vis     " 選択: おはようございます。 (。を含む)
+    )       " "さようなら" に移動
+<
+
+純粋な日本語: >
+    " バッファ: 最初の文です。次の文です。最後の文です。
+
+    " カーソルが "最初" 上にある場合
+    vis     " 選択: 最初の文です
+    )       " "次の文です" に移動
+    2)      " "最後の文です" に移動
+    (       " "次の文です" に戻る
+<
+
+純粋な英語: >
+    " バッファ: First sentence. Second sentence. Third sentence.
+
+    " カーソルが "First" 上にある場合
+    vis     " 選択: First sentence
+    )       " "Second sentence" に移動
+<
+
+オペレータとの組み合わせ: >
+    d)      " カーソルから次の文まで削除
+    c(      " 前の文からカーソルまで変更
+    y)      " カーソルから次の文までヤンク
+    v)      " 次の文まで視覚選択
+<
+
+高度な設定: >
+    -- 絵文字句読点バリアントを追加
+    require('sentence-jp').setup({
+      punctuation = {
+        sentence_endings = '[。！？．.!?‼⁉⁈]',
+      },
+    })
+
+    -- 異なるモーションキーを使用
+    require('sentence-jp').setup({
+      motions = {
+        next_sentence = ']s',
+        prev_sentence = '[s',
+      },
+    })
+<
+
+==============================================================================
+関数                                                  *sentence-jp-functions*
+
+                                                   *sentence-jp.get_config()*
+get_config()
+    現在の設定テーブルを返します。
+
+    例: >
+        local config = require('sentence-jp').get_config()
+        print(vim.inspect(config))
+<
+
+                                                  *sentence-jp.find_sentence()*
+find_sentence()
+    現在のカーソル位置周辺の文の境界を検索します。
+    日本語と英語の両方の文で動作します。
+
+    以下の構造のテーブルを返します: >
+        {
+          start = {line, col},      -- 文の開始位置
+          end_inner = {line, col},  -- 句読点の前の終了位置
+          end_around = {line, col}, -- 句読点の後の終了位置
+        }
+<
+    文の境界が見つからない場合は nil を返します。
+
+    例: >
+        local boundaries = require('sentence-jp').find_sentence()
+        if boundaries then
+          print('文の開始:', boundaries.start[1], boundaries.start[2])
+          print('内部終了:', boundaries.end_inner[1], boundaries.end_inner[2])
+        end
+<
+
+==============================================================================
+トラブルシューティング                        *sentence-jp-troubleshooting*
+
+テキストオブジェクトが動作しない~
+
+1. setup() が呼び出されたか確認: >
+    :lua print(vim.inspect(require('sentence-jp').get_config()))
+<
+
+2. 競合するキーマップがないか確認: >
+    :verbose map is
+    :verbose map as
+<
+
+3. プラグインが正しく読み込まれたか確認: >
+    :lua print(vim.inspect(require('sentence-jp').find_sentence()))
+<
+
+モーションが間違った場所にジャンプする~
+
+1. テキストに文末句読点 (。！？．.!?) が含まれているか確認
+
+2. 全角スペース処理を確認: >
+    require('sentence-jp').setup({
+      include_fullwidth_space = true,
+    })
+<
+
+3. まず単純なテキスト（純粋な日本語または純粋な英語）でテスト
+
+4. 読点 (、,) が文末として扱われていないか確認
+   （無視されるのが正しい動作です）
+
+プラグインが読み込まれない~
+
+1. Neovim のバージョンが >= 0.7.0 であることを確認: >
+    :version
+<
+
+2. エラーを確認: >
+    :messages
+<
+
+3. プラグインが正しいディレクトリにあるか確認
+
+4. 設定で setup() が呼び出されているか確認
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

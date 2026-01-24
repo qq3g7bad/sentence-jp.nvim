@@ -1,0 +1,2 @@
+-- sentence-jp.nvim plugin initialization
+-- This file is intentionally empty - users must call require('sentence-jp').setup() explicitly
