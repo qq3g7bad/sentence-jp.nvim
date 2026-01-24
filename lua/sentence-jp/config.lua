@@ -11,8 +11,8 @@ local defaults = {
   -- Finds nearest sentence boundary regardless of language
   motions = {
     enable = true,
-    next_sentence = ')',
-    prev_sentence = '(',
+    next_sentence = ")",
+    prev_sentence = "(",
   },
 
   -- Multi-language punctuation patterns
@@ -21,7 +21,7 @@ local defaults = {
   -- Japanese: 。！？． (period, exclamation, question, fullwidth period)
   -- English: .!? (period, exclamation, question)
   punctuation = {
-    sentence_endings = '[。！？．.!?]',
+    sentence_endings = "[。！？．.!?]",
   },
 
   -- Behavior
@@ -31,10 +31,10 @@ local defaults = {
 local config = vim.deepcopy(defaults)
 
 function M.setup(user_config)
-  config = vim.tbl_deep_extend('force', defaults, user_config or {})
+  config = vim.tbl_deep_extend("force", defaults, user_config or {})
 
   if not M.validate(config) then
-    vim.notify('sentence-jp: Invalid configuration, using defaults', vim.log.levels.WARN)
+    vim.notify("sentence-jp: Invalid configuration, using defaults", vim.log.levels.WARN)
     config = vim.deepcopy(defaults)
   end
 end
@@ -44,23 +44,23 @@ function M.get()
 end
 
 function M.validate(cfg)
-  if type(cfg) ~= 'table' then
+  if type(cfg) ~= "table" then
     return false
   end
 
-  if cfg.textobject and type(cfg.textobject) ~= 'table' then
+  if cfg.textobject and type(cfg.textobject) ~= "table" then
     return false
   end
 
-  if cfg.motions and type(cfg.motions) ~= 'table' then
+  if cfg.motions and type(cfg.motions) ~= "table" then
     return false
   end
 
   if cfg.punctuation then
-    if type(cfg.punctuation) ~= 'table' then
+    if type(cfg.punctuation) ~= "table" then
       return false
     end
-    if cfg.punctuation.sentence_endings and type(cfg.punctuation.sentence_endings) ~= 'string' then
+    if cfg.punctuation.sentence_endings and type(cfg.punctuation.sentence_endings) ~= "string" then
       return false
     end
   end

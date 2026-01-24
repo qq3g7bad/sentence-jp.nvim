@@ -1,0 +1,41 @@
+# StyLua Configuration for Modern Lua Development
+# This file configures StyLua, a code formatter for Lua that helps maintain
+# consistent and modern code style across the project.
+
+# Column Width: Maximum line length before wrapping
+# Modern practice: Keep lines readable, typically 80-120 characters
+# Benefits: Better readability, easier code reviews, works well with split windows
+column_width = 120
+
+# Indentation: Use spaces for consistent rendering across editors
+# Modern practice: Spaces over tabs for Lua projects
+# Benefits: Consistent appearance regardless of editor settings
+indent_type = "Spaces"
+
+# Indent Width: Number of spaces per indentation level
+# Modern practice: 2 spaces is standard for Lua, keeps nesting readable
+# Benefits: Saves horizontal space while maintaining clarity
+indent_width = 2
+
+# Line Endings: Unix-style line endings
+# Modern practice: LF (\n) is standard for cross-platform development
+# Benefits: Git compatibility, works on all platforms
+line_endings = "Unix"
+
+# Quote Style: Prefer double quotes for strings
+# Modern practice: Consistent quote style improves readability
+# Options: "AutoPreferDouble" | "AutoPreferSingle" | "ForceDouble" | "ForceSingle"
+# Benefits: AutoPreferDouble maintains existing quotes but prefers " for new strings
+quote_style = "AutoPreferDouble"
+
+# Call Parentheses: Always require parentheses for function calls
+# Modern practice: Explicit parentheses prevent ambiguity
+# Options: "Always" | "NoSingleString" | "NoSingleTable" | "None"
+# Benefits: Clear distinction between function calls and other expressions
+call_parentheses = "Always"
+
+# Collapse Simple Statements: Keep simple statements on one line when possible
+# Modern practice: Balance between compactness and readability
+# Options: "Never" | "FunctionOnly" | "ConditionalOnly" | "Always"
+# Benefits: "Always" allows compact code for simple cases while wrapping complex ones
+collapse_simple_statement = "Never"
