@@ -21,7 +21,8 @@ local defaults = {
   -- Japanese: 。！？． (period, exclamation, question, fullwidth period)
   -- English: .!? (period, exclamation, question)
   punctuation = {
-    sentence_endings = "[。！？．.!?]",
+    sentence_endings_jp = "[。！？．]",
+    sentence_endings_en = "[.!?]",
   },
 
   -- Behavior
@@ -30,6 +31,8 @@ local defaults = {
 
 local config = vim.deepcopy(defaults)
 
+--- Setup configuration with user overrides
+--- @param user_config? table User configuration to merge with defaults
 function M.setup(user_config)
   config = vim.tbl_deep_extend("force", defaults, user_config or {})
 
@@ -39,10 +42,15 @@ function M.setup(user_config)
   end
 end
 
+--- Get the current configuration
+--- @return table The current configuration table
 function M.get()
   return config
 end
 
+--- Validate configuration structure
+--- @param cfg table Configuration to validate
+--- @return boolean True if configuration is valid, false otherwise
 function M.validate(cfg)
   if type(cfg) ~= "table" then
     return false
@@ -60,8 +68,10 @@ function M.validate(cfg)
     if type(cfg.punctuation) ~= "table" then
       return false
     end
-    if cfg.punctuation.sentence_endings and type(cfg.punctuation.sentence_endings) ~= "string" then
-      return false
+    for _, field in ipairs({ "sentence_endings_jp", "sentence_endings_en" }) do
+      if cfg.punctuation[field] and type(cfg.punctuation[field]) ~= "string" then
+        return false
+      end
     end
   end
 

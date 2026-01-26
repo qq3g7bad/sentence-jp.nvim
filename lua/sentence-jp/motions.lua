@@ -1,5 +1,7 @@
 local M = {}
 
+--- Move cursor to the next sentence
+--- @param count? number Number of sentences to move (default: vim.v.count1)
 function M.next_sentence(count)
   count = count or vim.v.count1
   local config = require("sentence-jp.config").get()
@@ -7,13 +9,33 @@ function M.next_sentence(count)
 
   -- Search for nearest sentence boundary (Japanese OR English)
   for i = 1, count do
-    local result = vim.fn.search(pattern, "W")
+    local cursor = vim.api.nvim_win_get_cursor(0)
+    local line_text = vim.api.nvim_buf_get_lines(0, cursor[1] - 1, cursor[1], false)[1] or ""
+    if line_text:match("^%s*$") then
+      local next_nonblank = vim.fn.search("^\\S", "W")
+      if next_nonblank ~= 0 then
+        vim.api.nvim_win_set_cursor(0, { next_nonblank, 0 })
+      end
+      break
+    end
+
+    local utils = require("sentence-jp.utils")
+    local _, end_line, next_blank = utils.find_paragraph_bounds()
+
+    local stop_line = end_line
+
+    local result = vim.fn.search(pattern, "eW", stop_line)
     if result == 0 then
-      break -- No more sentences
+      if next_blank ~= 0 then
+        vim.api.nvim_win_set_cursor(0, { next_blank, 0 })
+      end
+      break -- No more sentences before blank line
     end
   end
 end
 
+--- Move cursor to the previous sentence
+--- @param count? number Number of sentences to move backward (default: vim.v.count1)
 function M.prev_sentence(count)
   count = count or vim.v.count1
   local config = require("sentence-jp.config").get()
@@ -28,6 +50,7 @@ function M.prev_sentence(count)
   end
 end
 
+--- Setup motion keymaps for sentence navigation
 function M.setup_motions()
   local config = require("sentence-jp.config").get()
 

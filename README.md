@@ -23,19 +23,16 @@
 ### 例: 混在ドキュメント
 
 ```text
-これは日本語です。This is English. また日本語です。
+これは日本語です。This is English. また日本語です。連続した
+句読点や改行にも対応します。。。Consecutive punctuations...
 ```
 
-- カーソルが "English" 上にある場合 → "is" を押すと:
+- カーソルが "English" 上にある場合 → "vis" を押すと:
   - ✓  "This is English" を選択 (最も近い境界: 左側は "。", 右側は ".")
-- カーソルが "日本語" 上にある場合 → "is" を押すと:
+- カーソルが "日本語" 上にある場合 → "vis" を押すと:
   - ✓  "これは日本語です" を選択 (最も近い境界: 両方とも "。")
-
-どの言語を使っているか意識する必要はありません！
-
-## 📋 必要要件
-
-- Neovim >= 0.7.0
+- カーソルが "句読点" 上にある場合 → "vis" を押すと:
+  - ✓  "連続した句読点や改行にも対応します。。。" を選択。
 
 ## 📦 インストール
 
@@ -180,19 +177,16 @@ Whichever punctuation is NEAREST to your cursor is used for boundaries.
 ### Example: Mixed Document
 
 ```text
-これは日本語です。This is English. また日本語です。
+これは日本語です。This is English. また日本語です。連続した
+句読点や改行にも対応します。。。Consecutive punctuations...
 ```
 
-- Cursor on "English" → Press "is":
+- Cursor on "English" → Press "vis":
   - ✓  Selects "This is English" (nearest boundaries: 。and .)
-- Cursor on "日本語" → Press "is":
+- Cursor on "日本語" → Press "vis":
   - ✓  Selects "これは日本語です" (nearest boundaries: both 。)
-
-You don't need to think about which language you're in!
-
-## 📋 Requirements
-
-- Neovim >= 0.7.0
+- Cursor on "句読点" → Press "vis":
+  - ✓  Selects "連続した句読点や改行にも対応します。。。"
 
 ## 📦 Installation
 
