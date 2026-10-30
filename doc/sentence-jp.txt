@@ -189,6 +189,8 @@ MOTIONS                                                *sentence-jp-motions*
 )                       Move forward to the beginning of the next sentence.
                         Works for both Japanese and English. Finds nearest
                         sentence boundary. Accepts a count.
+                        Line breaks inside a sentence are skipped. Stops at
+                        blank lines (paragraph boundaries), like Vim.
 
                         Works in normal, visual, and operator-pending mode.
 
@@ -196,6 +198,8 @@ MOTIONS                                                *sentence-jp-motions*
 (                       Move backward to the beginning of the previous
                         sentence. Works for both Japanese and English. Finds
                         nearest sentence boundary. Accepts a count.
+                        Line breaks inside a sentence are skipped. Stops at
+                        blank lines (paragraph boundaries), like Vim.
 
                         Works in normal, visual, and operator-pending mode.
 

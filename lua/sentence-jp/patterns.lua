@@ -168,29 +168,6 @@ local function move_to_next_char(end_line)
   return false
 end
 
---- Build forward search pattern for finding next sentence
---- Pattern matches sentence endings + optional whitespace + non-whitespace
---- @param config table Configuration containing punctuation patterns
---- @return string Vim regex pattern for forward sentence search
-function M.build_forward_pattern(config)
-  local whitespace = config.include_fullwidth_space and "[\\n[:space:]　]" or "[\\n[:space:]]"
-
-  -- Pattern: sentence ending + optional whitespace + non-whitespace char
-  -- For Japanese, sentences often have no space between them (。次の文), so whitespace is optional.
-  return M.build_end_pattern(config) .. whitespace .. "*[^[:space:]　]"
-end
-
---- Build backward search pattern for finding previous sentence
---- Pattern matches sentence start after punctuation or buffer start
---- @param config table Configuration containing punctuation patterns
---- @return string Vim regex pattern for backward sentence search
-function M.build_backward_pattern(config)
-  local whitespace = config.include_fullwidth_space and "[\\n[:space:]　]" or "[\\n[:space:]]"
-
-  -- Pattern: (sentence ending OR line start) + optional whitespace + \zs + sentence start
-  return "\\%(" .. M.build_end_pattern(config) .. "\\|^\\)" .. whitespace .. "*\\zs[^[:space:]　]"
-end
-
 --- Find sentence boundaries around a given position
 --- @param line number Line number (1-indexed)
 --- @param col number Column byte position (0-indexed)

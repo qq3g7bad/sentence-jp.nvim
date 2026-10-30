@@ -85,6 +85,8 @@ First. 最初の文。次の文。Last.
 - `)` を押す → "Last" に移動 (最も近い境界は 。)
 - `(` を押す → 前の文に戻る
 
+文の途中の改行では止まりません。空行（段落の区切り）では Vim 標準と同様に止まります。
+
 ### モーション x オペレータ
 
 モーションとオペレータを組み合わせる：
@@ -247,6 +249,8 @@ First. 最初の文。次の文。Last.
 - Press `)` → moves to "次" (nearest boundary is 。)
 - Press `)` → moves to "Last" (nearest boundary is 。)
 - Press `(` → moves back to previous sentence
+
+Line breaks inside a sentence are skipped. Blank lines (paragraph boundaries) are stops, just like Vim.
 
 ### Operator-Pending Mode
 
