@@ -54,3 +54,28 @@ describe("sentence ending", function()
     assert.equals("1:バー", h.ch())
   end)
 end)
+
+describe("cursor inside a sentence ending", function()
+  before_each(function()
+    require("sentence-jp").setup()
+  end)
+
+  for i = 1, 3 do
+    it("dis selects the sentence ending with the run (cursor on " .. i .. ". 。)", function()
+      h.buf({ "前。あ。。。い。" })
+      h.at(1, "。。。")
+      if i > 1 then
+        h.normal((i - 1) .. "l")
+      end
+      h.normal("dis")
+      assert.same({ "前。い。" }, h.get())
+    end)
+  end
+
+  it("dis on a closing quote selects the sentence it closes", function()
+    h.buf({ 'Hi. He said "Go." Then left.' })
+    h.at(1, '" Then')
+    h.normal("dis")
+    assert.same({ "Hi.  Then left." }, h.get())
+  end)
+end)

@@ -114,6 +114,14 @@ function M.build_end_pattern(config)
   return "\\%(" .. table.concat(branches, "\\|") .. "\\)"
 end
 
+--- Compare two {line, col} positions
+--- @param a table Position {line, col}
+--- @param b table Position {line, col}
+--- @return boolean True if a is strictly before b
+local function is_before(a, b)
+  return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2])
+end
+
 --- Move cursor to next character, handling multi-byte characters
 --- @param end_line number Last line to consider
 --- @return boolean True if successfully moved, false if at end
@@ -187,12 +195,28 @@ function M.find_sentence_boundaries(line, col, bounds)
   vim.api.nvim_win_set_cursor(0, { line, col })
 
   local end_pattern = M.build_end_pattern(config)
-  local punct_line = vim.fn.search(end_pattern, "cW", end_line)
+  local origin = { line, col }
+
+  -- The cursor may be inside a sentence ending (e.g. on the 2nd "。" of "。。。" or on a closing quote)
+  local found_end = false
+  if vim.fn.search(end_pattern, "bcW", start_line) ~= 0 then
+    vim.fn.searchpos(end_pattern, "ceW")
+    found_end = not is_before(vim.api.nvim_win_get_cursor(0), origin)
+  end
+
+  if not found_end then
+    vim.api.nvim_win_set_cursor(0, origin)
+    if vim.fn.search(end_pattern, "cW", end_line) ~= 0 then
+      -- Move forward to end of punctuation run (e.g., "。。" or "...")
+      vim.fn.searchpos(end_pattern, "ceW")
+      found_end = true
+    end
+  end
 
   local end_inner
   local end_around
 
-  if punct_line == 0 then
+  if not found_end then
     -- No punctuation found, use end of paragraph
     local end_text = vim.api.nvim_buf_get_lines(0, end_line - 1, end_line, false)[1] or ""
     local end_col = #end_text > 0 and (#end_text - 1) or 0
@@ -203,9 +227,6 @@ function M.find_sentence_boundaries(line, col, bounds)
     -- Found punctuation - now calculate boundaries:
     -- end_inner: INCLUDES the punctuation (Vim default 'is')
     -- end_around: INCLUDES punctuation + trailing whitespace
-
-    -- Move forward to end of punctuation run (e.g., "。。" or "...")
-    vim.fn.searchpos(end_pattern, "ceW")
     end_inner = vim.api.nvim_win_get_cursor(0)
 
     -- Skip any trailing whitespace (within paragraph bounds)
@@ -217,14 +238,21 @@ function M.find_sentence_boundaries(line, col, bounds)
   end
 
   -- Find sentence start: search backward from current position for previous punctuation
-  vim.api.nvim_win_set_cursor(0, { line, col })
+  vim.api.nvim_win_set_cursor(0, origin)
 
   local start_pos
   local prev_punct = vim.fn.searchpos(end_pattern, "bW", start_line)
-  if prev_punct[1] ~= 0 then
+  while prev_punct[1] ~= 0 do
     -- Move to end of the punctuation run
     vim.fn.searchpos(end_pattern, "ceW")
-
+    if is_before(vim.api.nvim_win_get_cursor(0), origin) then
+      break
+    end
+    -- The match is the ending the cursor is on (e.g. inside "。。。"), so look further back
+    vim.api.nvim_win_set_cursor(0, { prev_punct[1], prev_punct[2] - 1 })
+    prev_punct = vim.fn.searchpos(end_pattern, "bW", start_line)
+  end
+  if prev_punct[1] ~= 0 then
     -- Move to the character after punctuation, then skip whitespace if present
     move_to_next_char(end_line)
     move_to_next_nonspace(end_line, config.include_fullwidth_space)
