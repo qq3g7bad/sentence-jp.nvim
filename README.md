@@ -72,7 +72,7 @@ require('sentence-jp').setup()
 - `cas` を押す → 句読点を含む文を変更
 - `yas` を押す → 句読点を含む文をヤンク
 
-**注意:** Vimのデフォルト `is` と同様に、これは句読点を**含みます**。後続の空白も含めるには `as` を使用してください。
+**注意:** Vimのデフォルト `is` と同様に、これは句読点を**含みます**。後続の空白も含めるには `as` を使用してください（同じ行の空白のみ。後続の空白がなければ、Vim 標準と同様に先行する空白を含めます）。
 
 ### モーションの例
 
@@ -233,7 +233,7 @@ Given this mixed text:
 - Press `cas` → changes sentence with punctuation
 - Press `yas` → yanks sentence with punctuation
 
-**Note:** Just like Vim's default `is`, this INCLUDES the punctuation mark. Use `as` to also include trailing whitespace.
+**Note:** Just like Vim's default `is`, this INCLUDES the punctuation mark. Use `as` to also include trailing whitespace (on the same line only; if there is none, the leading whitespace is included instead, like Vim).
 
 ### Motion Examples
 

@@ -9,8 +9,9 @@ end
 
 --- Check if character at offset from cursor is a space
 --- @param offset number Character offset from cursor position (0 = current, 1 = next, -1 = previous)
+--- @param outside_line boolean Value to return when the offset falls outside the line
 --- @return boolean True if character at offset is whitespace
-local function char_at_offset_is_space(offset)
+local function char_at_offset_is_space(offset, outside_line)
   local pos = vim.api.nvim_win_get_cursor(0)
   local line_text = vim.api.nvim_buf_get_lines(0, pos[1] - 1, pos[1], false)[1] or ""
   local char_len = vim.fn.strchars(line_text)
@@ -23,23 +24,41 @@ local function char_at_offset_is_space(offset)
   local target_idx = cur_idx + offset
 
   if target_idx >= char_len or target_idx < 0 then
-    return true
+    return outside_line
   end
 
   local ch = vim.fn.strcharpart(line_text, target_idx, 1)
   return is_space_char(ch)
 end
 
---- Check if next character after cursor is a space
+--- Check if next character after cursor is a space (end of line does not count)
 --- @return boolean True if next character is whitespace
 local function next_char_is_space()
-  return char_at_offset_is_space(1)
+  return char_at_offset_is_space(1, false)
 end
 
 --- Check if current character at cursor is a space
 --- @return boolean True if current character is whitespace
 local function current_char_is_space()
-  return char_at_offset_is_space(0)
+  return char_at_offset_is_space(0, true)
+end
+
+--- Find the start of the whitespace run just before a position on the same line
+--- @param pos table Position {line, col}
+--- @param include_fullwidth_space boolean Whether to treat fullwidth space as whitespace
+--- @return table Position {line, col} of the first preceding whitespace, or pos itself if there is none
+local function leading_space_start(pos, include_fullwidth_space)
+  local line_text = vim.api.nvim_buf_get_lines(0, pos[1] - 1, pos[1], false)[1] or ""
+  local col = pos[2]
+  while col > 0 do
+    local prev = line_text:sub(1, col):match("[ \t]$")
+      or (include_fullwidth_space and line_text:sub(1, col):match("　$"))
+    if not prev then
+      break
+    end
+    col = col - #prev
+  end
+  return { pos[1], col }
 end
 
 --- Move cursor to next non-space character within bounds
@@ -176,7 +195,7 @@ end
 --- @param line number Line number (1-indexed)
 --- @param col number Column byte position (0-indexed)
 --- @param bounds? table Optional {start_line: number, end_line: number} to limit search
---- @return table|nil {start: [line,col], end_inner: [line,col], end_around: [line,col]} or nil if not found
+--- @return table|nil {start, start_around, end_inner, end_around} ([line,col] each) or nil if not found
 function M.find_sentence_boundaries(line, col, bounds)
   local config = require("sentence-jp.config").get()
   bounds = bounds or {}
@@ -229,10 +248,10 @@ function M.find_sentence_boundaries(line, col, bounds)
     -- end_around: INCLUDES punctuation + trailing whitespace
     end_inner = vim.api.nvim_win_get_cursor(0)
 
-    -- Skip any trailing whitespace (within paragraph bounds)
+    -- Skip trailing whitespace on the same line only
     if next_char_is_space() then
       local ws_pattern = config.include_fullwidth_space and "[[:space:]　]\\+" or "[[:space:]]\\+"
-      vim.fn.searchpos(ws_pattern, "ceW", end_line)
+      vim.fn.searchpos(ws_pattern, "ceW", end_inner[1])
     end
     end_around = vim.api.nvim_win_get_cursor(0)
   end
@@ -265,11 +284,18 @@ function M.find_sentence_boundaries(line, col, bounds)
     start_pos = vim.api.nvim_win_get_cursor(0)
   end
 
+  -- Like Vim's 'as': without trailing whitespace, include the leading whitespace instead
+  local start_around = start_pos
+  if not is_before(end_inner, end_around) then
+    start_around = leading_space_start(start_pos, config.include_fullwidth_space)
+  end
+
   -- Restore cursor
   vim.api.nvim_win_set_cursor(0, save_cursor)
 
   return {
     start = start_pos,
+    start_around = start_around,
     end_inner = end_inner,
     end_around = end_around,
   }

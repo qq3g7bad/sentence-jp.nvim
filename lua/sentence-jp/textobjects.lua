@@ -70,7 +70,7 @@ function M.select_inner_sentence()
   select_range(boundaries.start, boundaries.end_inner, boundaries.linewise)
 end
 
---- Select around sentence (includes punctuation and trailing whitespace)
+--- Select around sentence (includes punctuation and trailing whitespace, or leading whitespace if none)
 --- Implements the 'as' text object
 function M.select_around_sentence()
   local boundaries = M.get_sentence_region()
@@ -79,7 +79,7 @@ function M.select_around_sentence()
     return
   end
 
-  select_range(boundaries.start, boundaries.end_around, boundaries.linewise)
+  select_range(boundaries.start_around, boundaries.end_around, boundaries.linewise)
 end
 
 --- Setup text object keymaps for sentence selection

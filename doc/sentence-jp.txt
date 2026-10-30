@@ -151,6 +151,9 @@ is                      "inner sentence" - Select sentence INCLUDING the
 as                      "around sentence" - Select sentence including
                         punctuation AND trailing whitespace. Works for both
                         Japanese and English. Finds nearest sentence boundary.
+                        Only whitespace on the same line is included. If there
+                        is no trailing whitespace, the leading whitespace is
+                        included instead (like Vim's |as|).
 
                         Works in visual and operator-pending mode.
 
