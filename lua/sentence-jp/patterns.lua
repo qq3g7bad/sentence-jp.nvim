@@ -79,53 +79,39 @@ local function normalize_bounds(start_line, end_line)
   return start_line, end_line
 end
 
---- Build a raw punctuation character class (no lookahead)
---- Used for matching consecutive punctuation with \+
---- @param config table Configuration containing punctuation patterns
---- @return string Vim regex character class for all sentence-ending punctuation
-function M.build_raw_punctuation_pattern(config)
-  local jp_pattern = config.punctuation.sentence_endings_jp or "[。！？．]"
-  local en_pattern = config.punctuation.sentence_endings_en or "[.!?]"
+--- Closing brackets/quotes that may follow English sentence-ending punctuation (as in Vim's 'sentence')
+local EN_CLOSERS = "[)\\]\"'”’]"
 
-  -- Extract characters from bracket expressions and combine them
-  local jp_chars = jp_pattern:match("%[(.-)%]") or ""
-  local en_chars = en_pattern:match("%[(.-)%]") or ""
-
-  return "[" .. jp_chars .. en_chars .. "]"
+--- Extract the body of a bracket expression (e.g. "[。！？]" -> "。！？")
+--- @param pattern string Vim regex character class
+--- @return string Characters inside the brackets
+local function class_body(pattern)
+  return pattern:match("%[(.-)%]") or ""
 end
 
---- Build a Vim regex pattern for sentence-ending punctuation
---- Handles both Japanese (。！？．) and English (.!?) punctuation
---- Special handling for periods to require trailing space or end of line
+--- Build a Vim regex matching one sentence ending (the whole punctuation run)
+--- Japanese punctuation always ends a sentence, even when followed by other text (e.g. "。次").
+--- English punctuation ends a sentence only when followed by end of line or whitespace,
+--- optionally after closing brackets/quotes, so "0.11", "a.b" and "init.lua" are not split.
 --- @param config table Configuration containing punctuation patterns
---- @return string Vim regex pattern for sentence endings
-function M.build_sentence_ending_pattern(config)
-  local jp_pattern = config.punctuation.sentence_endings_jp or "[。！？．]"
-  local en_pattern = config.punctuation.sentence_endings_en or "[.!?]"
+--- @return string Vim regex pattern for a sentence ending
+function M.build_end_pattern(config)
+  local jp_chars = class_body(config.punctuation.sentence_endings_jp or "[。！？．]")
+  local en_chars = class_body(config.punctuation.sentence_endings_en or "[.!?]")
+  local all = "[" .. jp_chars .. en_chars .. "]"
+  local space = config.include_fullwidth_space and "[[:space:]　]" or "[[:space:]]"
 
-  local has_dot = en_pattern:find("%.") ~= nil
-  local en_no_dot = en_pattern
-  if has_dot then
-    en_no_dot = en_no_dot:gsub("%.", "")
-    if en_no_dot == "[]" then
-      en_no_dot = ""
-    end
+  local branches = {}
+  if jp_chars ~= "" then
+    -- A run containing at least one Japanese mark (e.g. "。。。", "？!")
+    table.insert(branches, all .. "*[" .. jp_chars .. "]" .. all .. "*")
+  end
+  if en_chars ~= "" then
+    -- An English run followed by optional closers, then end of line or whitespace
+    table.insert(branches, all .. "\\+" .. EN_CLOSERS .. "*\\%($\\|" .. space .. "\\)\\@=")
   end
 
-  local dot_pattern = ""
-  if has_dot then
-    dot_pattern = "\\.\\%($\\|\\_s\\+\\|　\\+\\)"
-  end
-
-  local parts = { jp_pattern }
-  if en_no_dot ~= "" then
-    table.insert(parts, en_no_dot)
-  end
-  if dot_pattern ~= "" then
-    table.insert(parts, dot_pattern)
-  end
-
-  return "\\%(" .. table.concat(parts, "\\|") .. "\\)"
+  return "\\%(" .. table.concat(branches, "\\|") .. "\\)"
 end
 
 --- Move cursor to next character, handling multi-byte characters
@@ -157,39 +143,25 @@ end
 
 --- Build forward search pattern for finding next sentence
 --- Pattern matches sentence endings + optional whitespace + non-whitespace
---- Uses raw punctuation pattern to properly match consecutive punctuation (e.g., "..." or "。。")
 --- @param config table Configuration containing punctuation patterns
 --- @return string Vim regex pattern for forward sentence search
 function M.build_forward_pattern(config)
-  -- Multi-language sentence endings (Japanese: 。！？． + English: .!?)
-  -- Commas (、,) don't mark sentence boundaries in either language
-  -- Use raw punctuation to match all consecutive punctuation marks (greedy)
-  local raw_punct = M.build_raw_punctuation_pattern(config)
   local whitespace = config.include_fullwidth_space and "[\\n[:space:]　]" or "[\\n[:space:]]"
 
-  -- Pattern: one or more punctuation chars + optional whitespace + non-whitespace char
-  -- This ensures we match all consecutive punctuation like "..." or "。。。"
-  -- Note: For Japanese, sentences often have no space between them (。次の文),
-  -- so whitespace is optional. For English, periods without following space
-  -- (like "Mr.Smith") may match, but this is acceptable for motion purposes.
-  return raw_punct .. "\\+" .. whitespace .. "*[^[:space:]　]"
+  -- Pattern: sentence ending + optional whitespace + non-whitespace char
+  -- For Japanese, sentences often have no space between them (。次の文), so whitespace is optional.
+  return M.build_end_pattern(config) .. whitespace .. "*[^[:space:]　]"
 end
 
 --- Build backward search pattern for finding previous sentence
 --- Pattern matches sentence start after punctuation or buffer start
---- Uses raw punctuation pattern to properly skip consecutive punctuation (e.g., "..." or "。。")
 --- @param config table Configuration containing punctuation patterns
 --- @return string Vim regex pattern for backward sentence search
 function M.build_backward_pattern(config)
-  -- Multi-language sentence endings (Japanese: 。！？． + English: .!?)
-  -- Commas (、,) don't mark sentence boundaries in either language
-  -- Use raw punctuation to match all consecutive punctuation marks
-  local raw_punct = M.build_raw_punctuation_pattern(config)
   local whitespace = config.include_fullwidth_space and "[\\n[:space:]　]" or "[\\n[:space:]]"
 
-  -- Pattern: (one or more punctuation OR buffer start) + optional whitespace + \zs + sentence start
-  -- The \+ ensures we skip past all consecutive punctuation when moving backward
-  return "\\%(" .. raw_punct .. "\\+\\|^\\)" .. whitespace .. "*\\zs[^[:space:]　]"
+  -- Pattern: (sentence ending OR line start) + optional whitespace + \zs + sentence start
+  return "\\%(" .. M.build_end_pattern(config) .. "\\|^\\)" .. whitespace .. "*\\zs[^[:space:]　]"
 end
 
 --- Find sentence boundaries around a given position
@@ -214,9 +186,8 @@ function M.find_sentence_boundaries(line, col, bounds)
   -- Set cursor position (line is 1-indexed, col is 0-indexed)
   vim.api.nvim_win_set_cursor(0, { line, col })
 
-  -- Use raw punctuation pattern for matching consecutive punctuation
-  local raw_punct = M.build_raw_punctuation_pattern(config)
-  local punct_line = vim.fn.search(raw_punct, "cW", end_line)
+  local end_pattern = M.build_end_pattern(config)
+  local punct_line = vim.fn.search(end_pattern, "cW", end_line)
 
   local end_inner
   local end_around
@@ -234,8 +205,7 @@ function M.find_sentence_boundaries(line, col, bounds)
     -- end_around: INCLUDES punctuation + trailing whitespace
 
     -- Move forward to end of punctuation run (e.g., "。。" or "...")
-    -- Using raw pattern with \+ to properly match all consecutive punctuation
-    vim.fn.searchpos(raw_punct .. "\\+", "ceW")
+    vim.fn.searchpos(end_pattern, "ceW")
     end_inner = vim.api.nvim_win_get_cursor(0)
 
     -- Skip any trailing whitespace (within paragraph bounds)
@@ -250,10 +220,10 @@ function M.find_sentence_boundaries(line, col, bounds)
   vim.api.nvim_win_set_cursor(0, { line, col })
 
   local start_pos
-  local prev_punct = vim.fn.searchpos(raw_punct, "bW", start_line)
+  local prev_punct = vim.fn.searchpos(end_pattern, "bW", start_line)
   if prev_punct[1] ~= 0 then
     -- Move to end of the punctuation run
-    vim.fn.searchpos(raw_punct .. "\\+", "ceW")
+    vim.fn.searchpos(end_pattern, "ceW")
 
     -- Move to the character after punctuation, then skip whitespace if present
     move_to_next_char(end_line)

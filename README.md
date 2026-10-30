@@ -17,6 +17,7 @@
 
 - **日本語:** `。！？．` (句点、感嘆符、疑問符、全角ピリオド)
 - **英語:** `.!?` (ピリオド、感嘆符、疑問符)
+  - 直後が行末・空白のときだけ文末とみなします（間に `)` `"` などの閉じ括弧があっても可）。`0.11` や `init.lua`、URL の途中では区切りません。
 
 カーソルに最も近い句読点が境界として使用されます。
 
@@ -171,6 +172,7 @@ The plugin searches for BOTH Japanese and English punctuation:
 
 - **Japanese:** `。！？．` (period, exclamation, question, fullwidth period)
 - **English:** `.!?` (period, exclamation, question)
+  - Only treated as a sentence end when followed by end of line or whitespace (optionally after closers such as `)` or `"`), so `0.11`, `init.lua` and URLs are not split.
 
 Whichever punctuation is NEAREST to your cursor is used for boundaries.
 

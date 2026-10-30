@@ -157,6 +157,9 @@ as                      "around sentence" - Select sentence including
 The plugin searches for the NEAREST punctuation mark from cursor:
   Japanese: 。！？． (period, exclamation, question, fullwidth period)
   English:  .!? (period, exclamation, question)
+            Only when followed by end of line or whitespace (closers such
+            as ) or " may come in between), so 0.11, init.lua and URLs
+            are not split.
 
 Examples:
     Given: これは日本語です。This is English. また日本語です。
