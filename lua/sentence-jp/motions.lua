@@ -8,14 +8,6 @@ local function is_before(a, b)
   return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2])
 end
 
---- Check if a line contains only whitespace (a paragraph boundary)
---- @param lnum number Line number (1-indexed)
---- @return boolean True if the line is blank
-local function is_blank(lnum)
-  local text = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, false)[1] or ""
-  return text:match("^%s*$") ~= nil
-end
-
 --- Search for a non-whitespace character from a position
 --- @param pos table Position {line, col} to search from (excluded)
 --- @param flags string searchpos() flags ("W" or "bW")
@@ -61,7 +53,7 @@ end
 --- @return table|nil target Target position {line, col}, or nil if there is none
 --- @return boolean|nil inclusive True if the target is the last character of the buffer (like Vim's ")")
 local function next_start(pos)
-  if is_blank(pos[1]) then
+  if require("sentence-jp.utils").is_blank_line(pos[1]) then
     -- From a blank line, go to the first sentence of the next paragraph
     return search_nonspace(pos, "W")
   end
@@ -96,7 +88,7 @@ end
 --- @param pos table Cursor position {line, col}
 --- @return table|nil Target position {line, col}, or nil if there is none
 local function prev_start(pos)
-  if is_blank(pos[1]) then
+  if require("sentence-jp.utils").is_blank_line(pos[1]) then
     -- From a blank line, go to the last sentence of the previous paragraph
     local found = search_nonspace(pos, "bW")
     local boundaries = found and boundaries_at(found)

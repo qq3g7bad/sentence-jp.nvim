@@ -120,6 +120,8 @@ Configuration options:
 
     include_fullwidth_space
         Treat fullwidth space (　) as whitespace (default: true)
+        Lines containing only fullwidth spaces are then blank lines
+        (paragraph boundaries).
 
     punctuation.closing
         Closing brackets/quotes that may follow sentence-ending

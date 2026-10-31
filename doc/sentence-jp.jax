@@ -120,6 +120,7 @@ setup({config})
 
     include_fullwidth_space
         全角スペース (　) を空白として扱う (デフォルト: true)
+        全角スペースだけの行も空行 (段落の区切り) とみなします。
 
     punctuation.closing
         文末句読点の直後に来る閉じ括弧・引用符
