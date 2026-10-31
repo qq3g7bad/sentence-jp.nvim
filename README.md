@@ -74,6 +74,8 @@ require('sentence-jp').setup()
 
 **注意:** Vimのデフォルト `is` と同様に、これは句読点を**含みます**。後続の空白も含めるには `as` を使用してください（同じ行の空白のみ。後続の空白がなければ、Vim 標準と同様に先行する空白を含めます）。
 
+**count とビジュアルモード:** Vim 標準と同様に count を受け付けます（`d2is`、`v3as`）。`is` では文の間の空白も 1 つとして数えるので、和文の `d2is` は 2 文、`A. B.` の A 上の `d2is` は `A. ` を削除します。ビジュアルモードで 2 文字以上を選択中に `is` / `as` を押すと、選択を次（カーソルが先頭側なら前）へ伸ばします。
+
 ### モーションの例
 
 ```
@@ -251,6 +253,8 @@ Given this mixed text:
 - Press `yas` → yanks sentence with punctuation
 
 **Note:** Just like Vim's default `is`, this INCLUDES the punctuation mark. Use `as` to also include trailing whitespace (on the same line only; if there is none, the leading whitespace is included instead, like Vim).
+
+**Count and Visual mode:** Like Vim, a count is accepted (`d2is`, `v3as`). `is` counts the whitespace between sentences as a unit, so `d2is` deletes two Japanese sentences, while on "A" in `A. B.` it deletes `A. `. In Visual mode with more than one character selected, `is` / `as` extends the selection forward (or backward if the cursor is at the start).
 
 ### Motion Examples
 

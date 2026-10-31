@@ -1,43 +1,9 @@
 local M = {}
 
---- Compare two {line, col} positions
---- @param a table Position {line, col}
---- @param b table Position {line, col}
---- @return boolean True if a is strictly before b
-local function is_before(a, b)
-  return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2])
-end
-
---- Search for a non-whitespace character from a position
---- @param pos table Position {line, col} to search from (excluded)
---- @param flags string searchpos() flags ("W" or "bW")
---- @param stop_line? number Line to stop searching at
---- @return table|nil Position {line, col} of the match, or nil if not found
-local function search_nonspace(pos, flags, stop_line)
-  local config = require("sentence-jp.config").get()
-  local nonspace = config.include_fullwidth_space and "[^[:space:]　]" or "[^[:space:]]"
-
-  vim.api.nvim_win_set_cursor(0, pos)
-  local found = vim.fn.searchpos(nonspace, flags, stop_line or 0)
-  if found[1] == 0 then
-    return nil
-  end
-  return { found[1], found[2] - 1 }
-end
-
---- Find sentence boundaries at a position within its paragraph
---- @param pos table Position {line, col}
---- @return table|nil boundaries Sentence boundaries, or nil if not found
---- @return number start_line First line of the paragraph
---- @return number end_line Last line of the paragraph
-local function boundaries_at(pos)
-  local start_line, end_line = require("sentence-jp.utils").find_paragraph_bounds(pos[1])
-  local boundaries = require("sentence-jp.patterns").find_sentence_boundaries(pos[1], pos[2], {
-    start_line = start_line,
-    end_line = end_line,
-  })
-  return boundaries, start_line, end_line
-end
+local utils = require("sentence-jp.utils")
+local is_before = utils.is_before
+local search_nonspace = utils.search_nonspace
+local boundaries_at = utils.sentence_at
 
 --- Get the position of the last character of a line
 --- @param lnum number Line number (1-indexed)
@@ -53,7 +19,7 @@ end
 --- @return table|nil target Target position {line, col}, or nil if there is none
 --- @return boolean|nil inclusive True if the target is the last character of the buffer (like Vim's ")")
 local function next_start(pos)
-  if require("sentence-jp.utils").is_blank_line(pos[1]) then
+  if utils.is_blank_line(pos[1]) then
     -- From a blank line, go to the first sentence of the next paragraph
     return search_nonspace(pos, "W")
   end
@@ -88,7 +54,7 @@ end
 --- @param pos table Cursor position {line, col}
 --- @return table|nil Target position {line, col}, or nil if there is none
 local function prev_start(pos)
-  if require("sentence-jp.utils").is_blank_line(pos[1]) then
+  if utils.is_blank_line(pos[1]) then
     -- From a blank line, go to the last sentence of the previous paragraph
     local found = search_nonspace(pos, "bW")
     local boundaries = found and boundaries_at(found)
@@ -165,7 +131,7 @@ function M.setup_motions()
   local prev_key = config.motions.prev_sentence
 
   -- Set up motions for normal, visual, and operator-pending modes
-  require("sentence-jp.utils").map({ "n", "x", "o" }, next_key, function()
+  utils.map({ "n", "x", "o" }, next_key, function()
     M.next_sentence()
   end, {
     noremap = true,
@@ -173,7 +139,7 @@ function M.setup_motions()
     desc = "Next sentence (JP/EN)",
   })
 
-  require("sentence-jp.utils").map({ "n", "x", "o" }, prev_key, function()
+  utils.map({ "n", "x", "o" }, prev_key, function()
     M.prev_sentence()
   end, {
     noremap = true,

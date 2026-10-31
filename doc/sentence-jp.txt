@@ -166,6 +166,13 @@ is                      "inner sentence" - Select sentence INCLUDING the
                         Works for both Japanese and English.
                         Finds nearest sentence boundary.
 
+                        Accepts a count. Like Vim, the whitespace between
+                        sentences counts as one, so "d2is" deletes two
+                        Japanese sentences but "A. " in "A. B.".
+                        In Visual mode with more than one character selected,
+                        extends the selection forward (or backward if the
+                        cursor is at the start).
+
                         Works in visual and operator-pending mode.
 
                                                                         *v_as*
@@ -175,6 +182,8 @@ as                      "around sentence" - Select sentence including
                         Only whitespace on the same line is included. If there
                         is no trailing whitespace, the leading whitespace is
                         included instead (like Vim's |as|).
+                        Accepts a count and extends a Visual selection, like
+                        |v_is|.
 
                         Works in visual and operator-pending mode.
 

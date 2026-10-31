@@ -47,6 +47,45 @@ function M.find_paragraph_bounds(line)
   return start_line, end_line, next_blank
 end
 
+--- Compare two {line, col} positions
+--- @param a table Position {line, col}
+--- @param b table Position {line, col}
+--- @return boolean True if a is strictly before b
+function M.is_before(a, b)
+  return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2])
+end
+
+--- Search for a non-whitespace character from a position
+--- @param pos table Position {line, col} to search from (excluded)
+--- @param flags string searchpos() flags ("W" or "bW")
+--- @param stop_line? number Line to stop searching at
+--- @return table|nil Position {line, col} of the match, or nil if not found
+function M.search_nonspace(pos, flags, stop_line)
+  local config = require("sentence-jp.config").get()
+  local nonspace = config.include_fullwidth_space and "[^[:space:]　]" or "[^[:space:]]"
+
+  vim.api.nvim_win_set_cursor(0, pos)
+  local found = vim.fn.searchpos(nonspace, flags, stop_line or 0)
+  if found[1] == 0 then
+    return nil
+  end
+  return { found[1], found[2] - 1 }
+end
+
+--- Find sentence boundaries at a position within its paragraph
+--- @param pos table Position {line, col}
+--- @return table|nil boundaries Sentence boundaries, or nil if not found
+--- @return number start_line First line of the paragraph
+--- @return number end_line Last line of the paragraph
+function M.sentence_at(pos)
+  local start_line, end_line = M.find_paragraph_bounds(pos[1])
+  local boundaries = require("sentence-jp.patterns").find_sentence_boundaries(pos[1], pos[2], {
+    start_line = start_line,
+    end_line = end_line,
+  })
+  return boundaries, start_line, end_line
+end
+
 --- Mappings created by the plugin, as {modes, lhs} pairs
 local mappings = {}
 
