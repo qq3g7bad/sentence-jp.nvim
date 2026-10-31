@@ -125,6 +125,22 @@ require('sentence-jp').setup({
 })
 ```
 
+### 英語の略語
+
+`e.g.` や `Mr.` などの略語の `.`、行頭の番号付きリストの `.`（`1. `）は、後ろに空白があっても文末とみなしません。
+
+```lua
+require('sentence-jp').setup({
+  punctuation = {
+    -- 既定値: { "e.g.", "i.e.", "etc.", "Mr.", "Mrs.", "Dr.", "vs.", "cf." }
+    -- 指定したリストで既定値を置き換えます。{} で無効化
+    abbreviations = { "e.g.", "i.e.", "Mr.", "Prof." },
+  },
+})
+```
+
+**注意:** 既定値の `etc.` が文の最後にある場合（`apples, etc. Next`）も区切りません。気になる場合はリストから外してください。
+
 ### 異なるモーションキー
 
 ```lua
@@ -308,6 +324,22 @@ require('sentence-jp').setup({
   quote_aware = false,  -- always end the sentence after "。」" (default: true)
 })
 ```
+
+### English Abbreviations
+
+The `.` of abbreviations such as `e.g.` or `Mr.`, and of numbered list items at line start (`1. `), does not end a sentence even when followed by whitespace.
+
+```lua
+require('sentence-jp').setup({
+  punctuation = {
+    -- default: { "e.g.", "i.e.", "etc.", "Mr.", "Mrs.", "Dr.", "vs.", "cf." }
+    -- the list replaces the default; {} disables it
+    abbreviations = { "e.g.", "i.e.", "Mr.", "Prof." },
+  },
+})
+```
+
+**Note:** With the default list, `etc.` at the end of a sentence (`apples, etc. Next`) does not end it either. Remove it from the list if that matters.
 
 ### Different Motion Keys
 

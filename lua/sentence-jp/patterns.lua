@@ -103,6 +103,29 @@ end
 --- Opening brackets that may follow a closer at a sentence end (e.g. "「はい。」「いいえ。」")
 local OPENERS = "[「『（【〈《〔［｛(\\[]"
 
+--- Build a zero-width Vim regex that fails right after an abbreviation or a list number
+--- Placed before the English punctuation, so the final "." of "e.g." or "1." (at line start) is not an ending.
+--- @param abbreviations string[] Abbreviations including their final "." (e.g. "e.g.")
+--- @return string Vim regex (empty when there is nothing to exclude)
+local function build_en_exclusions(abbreviations)
+  local words = {}
+  local max_len = 0
+  for _, abbreviation in ipairs(abbreviations or {}) do
+    local word = abbreviation:match("^(.-)%.$")
+    if word and word ~= "" then
+      table.insert(words, vim.fn.escape(word, "\\.*[]~^$/"))
+      max_len = math.max(max_len, #word)
+    end
+  end
+
+  -- Numbered list item at line start ("1. ", "  12. ")
+  local exclusions = "\\%(^\\s*\\d\\+\\)\\@<!"
+  if #words > 0 then
+    exclusions = "\\%(\\<\\%(" .. table.concat(words, "\\|") .. "\\)\\)\\@" .. max_len .. "<!" .. exclusions
+  end
+  return exclusions
+end
+
 --- Extract the body of a bracket expression (e.g. "[。！？]" -> "。！？")
 --- @param pattern string Vim regex character class
 --- @return string Characters inside the brackets
@@ -116,6 +139,7 @@ end
 --- whitespace, another ending or an opening bracket; otherwise ("。」と言った") it is not an ending.
 --- English punctuation ends a sentence only when followed by end of line or whitespace,
 --- optionally after closing brackets/quotes, so "0.11", "a.b" and "init.lua" are not split.
+--- It does not end a sentence after an abbreviation ("e.g.") or a list number at line start ("1.").
 --- @param config table Configuration containing punctuation patterns
 --- @return string Vim regex pattern for a sentence ending
 function M.build_end_pattern(config)
@@ -139,7 +163,8 @@ function M.build_end_pattern(config)
   end
   if en_chars ~= "" then
     -- An English run followed by optional closers, then end of line or whitespace
-    table.insert(branches, all .. "\\+" .. closing .. "*\\%($\\|" .. space .. "\\)\\@=")
+    local exclusions = build_en_exclusions(config.punctuation.abbreviations)
+    table.insert(branches, exclusions .. all .. "\\+" .. closing .. "*\\%($\\|" .. space .. "\\)\\@=")
   end
 
   return "\\%(" .. table.concat(branches, "\\|") .. "\\)"

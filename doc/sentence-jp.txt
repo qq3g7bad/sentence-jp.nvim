@@ -86,6 +86,7 @@ setup({config})
         sentence_endings_jp = '[。！？．]',
         sentence_endings_en = '[.!?]',
         closing = '[」』）】〉》〕］｝"\'”’)\\]]',
+        abbreviations = { 'e.g.', 'i.e.', 'etc.', 'Mr.', 'Mrs.', 'Dr.', 'vs.', 'cf.' },
       },
       include_fullwidth_space = true,
       quote_aware = true,
@@ -126,6 +127,13 @@ Configuration options:
     punctuation.closing
         Closing brackets/quotes that may follow sentence-ending
         punctuation (default: '[」』）】〉》〕］｝"\'”’)\\]]')
+
+    punctuation.abbreviations
+        English abbreviations whose final "." does not end a sentence
+        (default: { 'e.g.', 'i.e.', 'etc.', 'Mr.', 'Mrs.', 'Dr.', 'vs.',
+        'cf.' }). A user list replaces the default; {} disables it.
+        The "." of a numbered list item at line start ("1. ") never ends
+        a sentence.
 
     quote_aware
         When true (default), "。」" ends a sentence only if the closer is

@@ -25,6 +25,8 @@ local defaults = {
     sentence_endings_jp = "[。！？．]",
     sentence_endings_en = "[.!?]",
     closing = "[」』）】〉》〕］｝\"'”’)\\]]",
+    -- English abbreviations whose final "." does not end a sentence (e.g. "e.g. the", "Mr. Smith")
+    abbreviations = { "e.g.", "i.e.", "etc.", "Mr.", "Mrs.", "Dr.", "vs.", "cf." },
   },
 
   -- Behavior
@@ -47,6 +49,12 @@ function M.setup(user_config)
 
   config = vim.tbl_deep_extend("force", defaults, user_config or {})
 
+  -- tbl_deep_extend merges lists by index; a user-specified list replaces the default instead
+  local user_punctuation = type(user_config) == "table" and user_config.punctuation
+  if type(user_punctuation) == "table" and user_punctuation.abbreviations ~= nil then
+    config.punctuation.abbreviations = user_punctuation.abbreviations
+  end
+
   if not M.validate(config) then
     vim.notify("sentence-jp: Invalid configuration, using defaults", vim.log.levels.WARN)
     config = vim.deepcopy(defaults)
@@ -58,6 +66,8 @@ end
 function M.get()
   return config
 end
+
+local islist = vim.islist or vim.tbl_islist
 
 --- Collect option paths in `user` that do not exist in `reference` (e.g. "punctuation.sentence_endings")
 --- @param user table User configuration
@@ -74,7 +84,7 @@ function M.unknown_keys(user, reference, prefix)
     local path = (prefix or "") .. tostring(key)
     if reference[key] == nil then
       table.insert(unknown, path)
-    elseif type(value) == "table" and type(reference[key]) == "table" then
+    elseif type(value) == "table" and type(reference[key]) == "table" and not islist(reference[key]) then
       vim.list_extend(unknown, M.unknown_keys(value, reference[key], path .. "."))
     end
   end
@@ -105,6 +115,18 @@ function M.validate(cfg)
     end
     for _, field in ipairs({ "sentence_endings_jp", "sentence_endings_en", "closing" }) do
       if cfg.punctuation[field] and type(cfg.punctuation[field]) ~= "string" then
+        return false
+      end
+    end
+  end
+
+  local abbreviations = cfg.punctuation and cfg.punctuation.abbreviations
+  if abbreviations ~= nil then
+    if type(abbreviations) ~= "table" then
+      return false
+    end
+    for _, abbreviation in ipairs(abbreviations) do
+      if type(abbreviation) ~= "string" then
         return false
       end
     end

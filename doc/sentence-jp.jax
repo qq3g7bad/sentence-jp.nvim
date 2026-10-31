@@ -87,6 +87,7 @@ setup({config})
         sentence_endings_jp = '[。！？．]',
         sentence_endings_en = '[.!?]',
         closing = '[」』）】〉》〕］｝"\'”’)\\]]',
+        abbreviations = { 'e.g.', 'i.e.', 'etc.', 'Mr.', 'Mrs.', 'Dr.', 'vs.', 'cf.' },
       },
       include_fullwidth_space = true,
       quote_aware = true,
@@ -125,6 +126,12 @@ setup({config})
     punctuation.closing
         文末句読点の直後に来る閉じ括弧・引用符
         (デフォルト: '[」』）】〉》〕］｝"\'”’)\\]]')
+
+    punctuation.abbreviations
+        末尾の "." を文末とみなさない英語の略語
+        (デフォルト: { 'e.g.', 'i.e.', 'etc.', 'Mr.', 'Mrs.', 'Dr.', 'vs.',
+        'cf.' })。指定したリストで既定値を置き換えます。{} で無効化します。
+        行頭の番号付きリスト ("1. ") の "." は常に文末とみなしません。
 
     quote_aware
         true (デフォルト) のとき、「。」」は閉じ括弧の後ろが行末・空白・
