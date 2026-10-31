@@ -301,11 +301,11 @@ function M.find_sentence_boundaries(line, col, bounds)
   end
 
   -- Like Vim's 'as': without trailing whitespace, include the leading whitespace instead
-  -- but not the whitespace after a list marker ("das" keeps "- ")
+  -- (for the first sentence of a list item, the marker from the line start: "das" deletes "- foo")
   local start_around = start_pos
   local at_item_text = start_col > 0 and start_pos[1] == start_line and start_pos[2] == start_col
-  if not is_before(end_inner, end_around) and not at_item_text then
-    start_around = leading_space_start(start_pos, config.include_fullwidth_space)
+  if not is_before(end_inner, end_around) then
+    start_around = at_item_text and { start_line, 0 } or leading_space_start(start_pos, config.include_fullwidth_space)
   end
 
   -- Restore cursor

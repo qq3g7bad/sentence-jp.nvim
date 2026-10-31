@@ -90,8 +90,10 @@ local function prev_unit_start(pos, around)
   if not boundaries then
     return nil
   end
-  if utils.is_before(boundaries.start, pos) then
-    return boundaries.start
+  -- For "as", the list marker belongs to the first sentence of the item
+  local start = around and utils.list_marker_start(boundaries.start) or boundaries.start
+  if utils.is_before(start, pos) then
+    return start
   end
 
   -- A list marker before the sentence is skipped, not a unit
@@ -112,7 +114,10 @@ local function prev_unit_start(pos, around)
   end
 
   local prev_boundaries = utils.sentence_at(prev_char)
-  return prev_boundaries and prev_boundaries.start
+  if not prev_boundaries then
+    return nil
+  end
+  return around and utils.list_marker_start(prev_boundaries.start) or prev_boundaries.start
 end
 
 --- Select `count` sentences starting at the cursor

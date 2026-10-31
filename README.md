@@ -143,7 +143,7 @@ require('sentence-jp').setup({
 
 ### 箇条書き
 
-行頭のリスト記号（`- ` `* ` `+ ` `1. ` `1) ` `- [ ] `）を文の区切りとして扱います。句点のない項目でも、`is` は記号の後ろからその項目のテキストだけを選択し、`(` `)` は各項目のテキストの先頭に移動します。`as` でも記号は残ります。インデントされた継続行は同じ項目に含まれます。
+行頭のリスト記号（`- ` `* ` `+ ` `1. ` `1) ` `- [ ] `）を文の区切りとして扱います。句点のない項目でも、`is` は記号の後ろからその項目のテキストだけを選択し、`(` `)` は各項目のテキストの先頭に移動します。`as` は項目の最初の文なら行頭から記号も含めて選択するため（Vim が前の空白を含めるのと同じく、文の後ろに空白がない場合）、`das` で `- 項目` 全体を削除できます。インデントされた継続行は同じ項目に含まれます。
 
 ```lua
 require('sentence-jp').setup({
@@ -381,7 +381,7 @@ require('sentence-jp').setup({
 
 ### List Items
 
-A list marker at line start (`- `, `* `, `+ `, `1. `, `1) `, `- [ ] `) bounds sentences. Even when items have no punctuation, `is` selects only the text of the item (after the marker), and `(` / `)` move to the text of each item. `as` keeps the marker too. Indented continuation lines belong to the item.
+A list marker at line start (`- `, `* `, `+ `, `1. `, `1) `, `- [ ] `) bounds sentences. Even when items have no punctuation, `is` selects only the text of the item (after the marker), and `(` / `)` move to the text of each item. `as` on the first sentence of an item also selects the marker from the line start (like Vim includes the leading whitespace, when the sentence has no trailing whitespace), so `das` deletes the whole `- item`. Indented continuation lines belong to the item.
 
 ```lua
 require('sentence-jp').setup({

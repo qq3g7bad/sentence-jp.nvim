@@ -171,9 +171,12 @@ Configuration options:
     list_items.enable
         When true (default), a list marker at line start ("- ", "* ",
         "+ ", "1. ", "1) ", "- [ ] ") bounds sentences: a sentence never
-        crosses the start of a list item, "is" and "as" select the text
-        after the marker, and "(" / ")" move to it. Indented continuation
-        lines belong to the item.
+        crosses the start of a list item, "is" selects the text after the
+        marker, and "(" / ")" move to it. "as" on the first sentence of an
+        item also selects the marker from the line start, like the leading
+        whitespace in Vim (only when the sentence has no trailing
+        whitespace), so "das" deletes the whole "- foo". Indented
+        continuation lines belong to the item.
         When false, only blank lines bound sentences, like Vim: items
         without punctuation run together back to the previous sentence
         ending.
