@@ -210,6 +210,8 @@ MOTIONS                                                *sentence-jp-motions*
                         sentence boundary. Accepts a count.
                         Line breaks inside a sentence are skipped. Stops at
                         blank lines (paragraph boundaries), like Vim.
+                        On the last sentence of the buffer, moves to the last
+                        character ("d)" deletes to the end).
 
                         Works in normal, visual, and operator-pending mode.
 

@@ -85,7 +85,7 @@ First. 最初の文。次の文。Last.
 - `)` を押す → "Last" に移動 (最も近い境界は 。)
 - `(` を押す → 前の文に戻る
 
-文の途中の改行では止まりません。空行（段落の区切り）では Vim 標準と同様に止まります。
+文の途中の改行では止まりません。空行（段落の区切り）では Vim 標準と同様に止まります。バッファの最後の文では、`)` は最後の文字に移動します（`d)` は文末まで削除）。
 
 ### モーション x オペレータ
 
@@ -265,7 +265,7 @@ First. 最初の文。次の文。Last.
 - Press `)` → moves to "Last" (nearest boundary is 。)
 - Press `(` → moves back to previous sentence
 
-Line breaks inside a sentence are skipped. Blank lines (paragraph boundaries) are stops, just like Vim.
+Line breaks inside a sentence are skipped. Blank lines (paragraph boundaries) are stops, just like Vim. On the last sentence of the buffer, `)` moves to the last character (`d)` deletes to the end).
 
 ### Operator-Pending Mode
 

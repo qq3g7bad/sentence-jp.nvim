@@ -47,9 +47,19 @@ local function boundaries_at(pos)
   return boundaries, start_line, end_line
 end
 
+--- Get the position of the last character of a line
+--- @param lnum number Line number (1-indexed)
+--- @return table Position {line, col}
+local function last_char_pos(lnum)
+  local text = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, false)[1] or ""
+  local last = vim.fn.strcharpart(text, vim.fn.strchars(text) - 1)
+  return { lnum, #text - #last }
+end
+
 --- Find the start of the next sentence (blank lines count as boundaries, like Vim)
 --- @param pos table Cursor position {line, col}
---- @return table|nil Target position {line, col}, or nil if there is none
+--- @return table|nil target Target position {line, col}, or nil if there is none
+--- @return boolean|nil inclusive True if the target is the last character of the buffer (like Vim's ")")
 local function next_start(pos)
   if is_blank(pos[1]) then
     -- From a blank line, go to the first sentence of the next paragraph
@@ -72,6 +82,12 @@ local function next_start(pos)
   -- No more sentences in this paragraph: stop at the blank line below
   if end_line < vim.api.nvim_buf_line_count(0) then
     return { end_line + 1, 0 }
+  end
+
+  -- Last sentence of the buffer: go to its last character
+  local last = last_char_pos(end_line)
+  if is_before(pos, last) then
+    return last, true
   end
   return nil
 end
@@ -107,18 +123,26 @@ local function prev_start(pos)
 end
 
 --- Move the cursor `count` times using `find_target`, stopping when there is no target
---- @param find_target function Function(pos) returning the next position or nil
+--- @param find_target function Function(pos) returning the next position (or nil) and whether it is inclusive
 --- @param count number Number of moves
 local function move(find_target, count)
+  local origin = vim.api.nvim_win_get_cursor(0)
+  local cursor = origin
+  local inclusive = false
   for _ = 1, count do
-    local cursor = vim.api.nvim_win_get_cursor(0)
-    local target = find_target(cursor)
+    local target, target_inclusive = find_target(cursor)
     if not target then
-      vim.api.nvim_win_set_cursor(0, cursor)
       break
     end
-    vim.api.nvim_win_set_cursor(0, target)
+    cursor, inclusive = target, target_inclusive or false
   end
+
+  vim.api.nvim_win_set_cursor(0, origin)
+  if inclusive and vim.fn.mode(1):sub(1, 2) == "no" then
+    -- Operator-pending: select up to and including the last character (e.g. "d)" on the last sentence)
+    vim.cmd("normal! v")
+  end
+  vim.api.nvim_win_set_cursor(0, cursor)
 end
 
 --- Move cursor to the next sentence
