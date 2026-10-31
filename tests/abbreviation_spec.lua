@@ -34,6 +34,7 @@ describe("abbreviations and list numbers", function()
   end)
 
   it("does not end a sentence after a list number at line start", function()
+    require("sentence-jp").setup({ list_items = { enable = false } })
     h.buf({ "1. 項目です。次。" })
     h.at(1, "項目")
     h.normal("dis")

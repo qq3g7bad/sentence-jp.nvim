@@ -72,16 +72,72 @@ function M.search_nonspace(pos, flags, stop_line)
   return { found[1], found[2] - 1 }
 end
 
---- Find sentence boundaries at a position within its paragraph
+--- Get the column where the text of a list item starts (e.g. 2 for "- foo")
+--- @param lnum number Line number (1-indexed)
+--- @return number|nil Byte column after the list marker, or nil if the line is not a list item (or list_items is off)
+function M.list_content_col(lnum)
+  local list_items = require("sentence-jp.config").get().list_items
+  if not (list_items and list_items.enable) then
+    return nil
+  end
+  local text = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, false)[1] or ""
+  local col = vim.fn.matchend(text, list_items.pattern)
+  return col > 0 and col or nil
+end
+
+--- Get the start of the list marker when a position is on the marker or at the start of the item's text
+--- @param pos table Position {line, col}
+--- @return table|nil Position {line, 0}, or nil if pos is not at the start of a list item
+function M.list_marker_start(pos)
+  local col = M.list_content_col(pos[1])
+  if col and pos[2] <= col then
+    return { pos[1], 0 }
+  end
+  return nil
+end
+
+--- Narrow paragraph lines to the list item (or the text before the first item) containing a line
+--- @param line number Line number (1-indexed)
+--- @param start_line number First line of the paragraph
+--- @param end_line number Last line of the paragraph
+--- @return number start_line First line of the block
+--- @return number end_line Last line of the block
+--- @return number|nil start_col Column where the text of the list item starts, if the block is a list item
+local function block_bounds(line, start_line, end_line)
+  local list_items = require("sentence-jp.config").get().list_items
+  if not (list_items and list_items.enable) then
+    return start_line, end_line, nil
+  end
+
+  local start_col
+  for lnum = line, start_line, -1 do
+    start_col = M.list_content_col(lnum)
+    if start_col then
+      start_line = lnum
+      break
+    end
+  end
+  for lnum = line + 1, end_line do
+    if M.list_content_col(lnum) then
+      end_line = lnum - 1
+      break
+    end
+  end
+  return start_line, end_line, start_col
+end
+
+--- Find sentence boundaries at a position within its paragraph (and list item, see list_items)
 --- @param pos table Position {line, col}
 --- @return table|nil boundaries Sentence boundaries, or nil if not found
 --- @return number start_line First line of the paragraph
 --- @return number end_line Last line of the paragraph
 function M.sentence_at(pos)
   local start_line, end_line = M.find_paragraph_bounds(pos[1])
+  local block_start, block_end, start_col = block_bounds(pos[1], start_line, end_line)
   local boundaries = require("sentence-jp.patterns").find_sentence_boundaries(pos[1], pos[2], {
-    start_line = start_line,
-    end_line = end_line,
+    start_line = block_start,
+    end_line = block_end,
+    start_col = start_col,
   })
   return boundaries, start_line, end_line
 end

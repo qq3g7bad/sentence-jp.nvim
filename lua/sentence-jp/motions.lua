@@ -14,6 +14,17 @@ local function last_char_pos(lnum)
   return { lnum, #text - #last }
 end
 
+--- Get the start of the sentence a non-space character belongs to, when it is a list marker before it
+--- @param pos table Position {line, col} of a non-space character
+--- @return table Position {line, col}
+local function skip_marker(pos)
+  local boundaries = boundaries_at(pos)
+  if boundaries and is_before(pos, boundaries.start) then
+    return boundaries.start
+  end
+  return pos
+end
+
 --- Find the start of the next sentence (blank lines count as boundaries, like Vim)
 --- @param pos table Cursor position {line, col}
 --- @return table|nil target Target position {line, col}, or nil if there is none
@@ -21,7 +32,8 @@ end
 local function next_start(pos)
   if utils.is_blank_line(pos[1]) then
     -- From a blank line, go to the first sentence of the next paragraph
-    return search_nonspace(pos, "W")
+    local found = search_nonspace(pos, "W")
+    return found and skip_marker(found)
   end
 
   local boundaries, _, end_line = boundaries_at(pos)
@@ -33,7 +45,7 @@ local function next_start(pos)
 
     local found = search_nonspace(boundaries.end_inner, "W", end_line)
     if found then
-      return found
+      return skip_marker(found)
     end
   end
 
@@ -66,8 +78,9 @@ local function prev_start(pos)
     return boundaries.start
   end
 
-  -- Already at the sentence start: go to the previous sentence in this paragraph
-  local found = search_nonspace(boundaries and boundaries.start or pos, "bW", start_line)
+  -- Already at the sentence start: go to the previous sentence in this paragraph (skipping a list marker)
+  local from = boundaries and boundaries.start or pos
+  local found = search_nonspace(utils.list_marker_start(from) or from, "bW", start_line)
   if found then
     local prev = boundaries_at(found)
     return prev and prev.start

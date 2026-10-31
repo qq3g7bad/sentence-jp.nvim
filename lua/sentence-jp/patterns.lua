@@ -208,7 +208,8 @@ end
 --- Find sentence boundaries around a given position
 --- @param line number Line number (1-indexed)
 --- @param col number Column byte position (0-indexed)
---- @param bounds? table Optional {start_line: number, end_line: number} to limit search
+--- @param bounds? table Optional {start_line: number, end_line: number, start_col?: number} to limit search
+---   (start_col: where the text starts on start_line, e.g. after a list marker)
 --- @return table|nil {start, start_around, end_inner, end_around} ([line,col] each) or nil if not found
 function M.find_sentence_boundaries(line, col, bounds)
   local config = require("sentence-jp.config").get()
@@ -216,6 +217,7 @@ function M.find_sentence_boundaries(line, col, bounds)
   local start_line = bounds.start_line or 1
   local end_line = bounds.end_line or vim.api.nvim_buf_line_count(0)
   start_line, end_line = normalize_bounds(start_line, end_line)
+  local start_col = start_line == bounds.start_line and bounds.start_col or 0
 
   if start_line > end_line then
     return nil
@@ -291,16 +293,18 @@ function M.find_sentence_boundaries(line, col, bounds)
     move_to_next_nonspace(end_line, config.include_fullwidth_space)
     start_pos = vim.api.nvim_win_get_cursor(0)
   else
-    -- No previous punctuation found, start from paragraph beginning
-    vim.api.nvim_win_set_cursor(0, { start_line, 0 })
+    -- No previous punctuation found, start from paragraph (or list item text) beginning
+    vim.api.nvim_win_set_cursor(0, { start_line, start_col })
 
     move_to_next_nonspace(end_line, config.include_fullwidth_space)
     start_pos = vim.api.nvim_win_get_cursor(0)
   end
 
   -- Like Vim's 'as': without trailing whitespace, include the leading whitespace instead
+  -- but not the whitespace after a list marker ("das" keeps "- ")
   local start_around = start_pos
-  if not is_before(end_inner, end_around) then
+  local at_item_text = start_col > 0 and start_pos[1] == start_line and start_pos[2] == start_col
+  if not is_before(end_inner, end_around) and not at_item_text then
     start_around = leading_space_start(start_pos, config.include_fullwidth_space)
   end
 

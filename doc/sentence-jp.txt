@@ -91,6 +91,10 @@ setup({config})
       },
       include_fullwidth_space = true,
       quote_aware = true,
+      list_items = {
+        enable = true,
+        pattern = '^\\s*\\%([-*+]\\|\\d\\+[.)]\\)\\s\\+\\%(\\[[ xX]\\]\\s\\+\\)\\=',
+      },
       filetypes = nil,
     }
 <
@@ -163,6 +167,20 @@ Configuration options:
         bracket. "彼は「行く。」と言った。" is one sentence, while
         "「はい。」「いいえ。」" is two.
         When false, "。」" always ends a sentence.
+
+    list_items.enable
+        When true (default), a list marker at line start ("- ", "* ",
+        "+ ", "1. ", "1) ", "- [ ] ") bounds sentences: a sentence never
+        crosses the start of a list item, "is" and "as" select the text
+        after the marker, and "(" / ")" move to it. Indented continuation
+        lines belong to the item.
+        When false, only blank lines bound sentences, like Vim: items
+        without punctuation run together back to the previous sentence
+        ending.
+
+    list_items.pattern
+        Vim regex matching a list marker at line start, including the
+        whitespace after it (default: see above).
 
 Examples: >
     -- Add more punctuation marks

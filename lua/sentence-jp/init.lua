@@ -63,14 +63,7 @@ end
 --- Find sentence boundaries at the current cursor position
 --- @return table|nil Sentence boundaries {start, end_inner, end_around} or nil if not found
 function M.find_sentence()
-  local cursor = vim.api.nvim_win_get_cursor(0)
-  local utils = require("sentence-jp.utils")
-  local start_line, end_line = utils.find_paragraph_bounds()
-
-  return require("sentence-jp.patterns").find_sentence_boundaries(cursor[1], cursor[2], {
-    start_line = start_line,
-    end_line = end_line,
-  })
+  return (require("sentence-jp.utils").sentence_at(vim.api.nvim_win_get_cursor(0)))
 end
 
 return M

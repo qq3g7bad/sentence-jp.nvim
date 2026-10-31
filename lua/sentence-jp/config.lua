@@ -40,6 +40,15 @@ local defaults = {
   -- false: "。」" always ends a sentence.
   quote_aware = true,
 
+  -- List items (e.g. "- foo", "1. foo", "- [ ] foo") as sentence boundaries.
+  -- enable = true: a sentence never crosses the start of a list item, and starts after its marker.
+  -- enable = false: like Vim, only blank lines bound a sentence ("- foo" lines without "。" run together).
+  list_items = {
+    enable = true,
+    -- Vim regex matching a list marker at line start, including the whitespace after it
+    pattern = "^\\s*\\%([-*+]\\|\\d\\+[.)]\\)\\s\\+\\%(\\[[ xX]\\]\\s\\+\\)\\=",
+  },
+
   -- Filetypes to enable the default keys in, e.g. { "markdown", "text" }.
   -- nil (default): all buffers. The <Plug> mappings are always global.
   filetypes = nil,
@@ -167,6 +176,21 @@ function M.validate(cfg)
 
   if cfg.quote_aware ~= nil and type(cfg.quote_aware) ~= "boolean" then
     return false
+  end
+
+  local list_items = cfg.list_items
+  if list_items ~= nil then
+    if type(list_items) ~= "table" then
+      return false
+    end
+    if list_items.enable ~= nil and type(list_items.enable) ~= "boolean" then
+      return false
+    end
+    if list_items.pattern ~= nil then
+      if type(list_items.pattern) ~= "string" or not pcall(vim.regex, list_items.pattern) then
+        return false
+      end
+    end
   end
 
   return true

@@ -141,6 +141,21 @@ require('sentence-jp').setup({
 
 **注意:** 既定値の `etc.` が文の最後にある場合（`apples, etc. Next`）も区切りません。気になる場合はリストから外してください。
 
+### 箇条書き
+
+行頭のリスト記号（`- ` `* ` `+ ` `1. ` `1) ` `- [ ] `）を文の区切りとして扱います。句点のない項目でも、`is` は記号の後ろからその項目のテキストだけを選択し、`(` `)` は各項目のテキストの先頭に移動します。`as` でも記号は残ります。インデントされた継続行は同じ項目に含まれます。
+
+```lua
+require('sentence-jp').setup({
+  list_items = {
+    enable = false,  -- Vim と同じく空行だけを段落の区切りにする（既定: true）
+    -- pattern = '^・',  -- リスト記号（記号の後ろの空白も含む Vim の正規表現）
+  },
+})
+```
+
+`enable = false` では、Vim の `is` と同じく、句点のない項目は前の句点まで複数行にわたって 1 文になります。
+
 ### 異なるモーションキー
 
 ```lua
@@ -363,6 +378,21 @@ require('sentence-jp').setup({
 ```
 
 **Note:** With the default list, `etc.` at the end of a sentence (`apples, etc. Next`) does not end it either. Remove it from the list if that matters.
+
+### List Items
+
+A list marker at line start (`- `, `* `, `+ `, `1. `, `1) `, `- [ ] `) bounds sentences. Even when items have no punctuation, `is` selects only the text of the item (after the marker), and `(` / `)` move to the text of each item. `as` keeps the marker too. Indented continuation lines belong to the item.
+
+```lua
+require('sentence-jp').setup({
+  list_items = {
+    enable = false,  -- like Vim, only blank lines bound sentences (default: true)
+    -- pattern = '^・',  -- list marker, as a Vim regex including the whitespace after it
+  },
+})
+```
+
+With `enable = false`, items without punctuation run together back to the previous sentence ending across lines, as Vim's `is` does.
 
 ### Different Motion Keys
 

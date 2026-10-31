@@ -29,6 +29,13 @@ describe("config", function()
     assert.same({}, messages)
   end)
 
+  it("falls back to the defaults for an invalid list_items.pattern", function()
+    require("sentence-jp").setup({ list_items = { pattern = "\\(" } })
+    assert.equals(1, #messages)
+    assert.matches("Invalid configuration", messages[1].msg, 1, true)
+    assert.is_true(require("sentence-jp.config").get().list_items.enable)
+  end)
+
   it("applies sentence_endings_jp", function()
     require("sentence-jp").setup({ punctuation = { sentence_endings_jp = "[。‼]" } })
     local h = require("tests.helpers")

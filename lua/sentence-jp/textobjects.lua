@@ -94,13 +94,15 @@ local function prev_unit_start(pos, around)
     return boundaries.start
   end
 
-  local prev_char = utils.search_nonspace(boundaries.start, "bW", start_line)
+  -- A list marker before the sentence is skipped, not a unit
+  local marker = utils.list_marker_start(boundaries.start)
+  local prev_char = utils.search_nonspace(marker or boundaries.start, "bW", start_line)
   if not prev_char then
     return nil
   end
 
   -- For "is", the whitespace before the sentence is a unit of its own
-  if not around and prev_char[1] == boundaries.start[1] then
+  if not around and not marker and prev_char[1] == boundaries.start[1] then
     local prev_text = vim.api.nvim_buf_get_lines(0, prev_char[1] - 1, prev_char[1], false)[1] or ""
     local char = vim.fn.strcharpart(prev_text:sub(prev_char[2] + 1), 0, 1)
     local gap_start = { prev_char[1], prev_char[2] + #char }
