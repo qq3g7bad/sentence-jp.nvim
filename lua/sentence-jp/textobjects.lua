@@ -74,7 +74,7 @@ function M.setup()
   end
 
   -- Always use 's' key - works for both Japanese and English!
-  vim.keymap.set({ "o", "x" }, "is", function()
+  require("sentence-jp.utils").map({ "o", "x" }, "is", function()
     M.select_inner_sentence()
   end, {
     noremap = true,
@@ -82,7 +82,7 @@ function M.setup()
     desc = "Inner sentence (includes punctuation, JP/EN)",
   })
 
-  vim.keymap.set({ "o", "x" }, "as", function()
+  require("sentence-jp.utils").map({ "o", "x" }, "as", function()
     M.select_around_sentence()
   end, {
     noremap = true,

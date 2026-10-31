@@ -47,4 +47,27 @@ function M.find_paragraph_bounds(line)
   return start_line, end_line, next_blank
 end
 
+--- Mappings created by the plugin, as {modes, lhs} pairs
+local mappings = {}
+
+--- Create a keymap and remember it so that it can be removed by unmap_all()
+--- @param modes string[] Modes
+--- @param lhs string Left-hand side
+--- @param rhs function Callback
+--- @param opts table Options passed to vim.keymap.set()
+function M.map(modes, lhs, rhs, opts)
+  vim.keymap.set(modes, lhs, rhs, opts)
+  table.insert(mappings, { modes, lhs })
+end
+
+--- Remove all keymaps created by map()
+function M.unmap_all()
+  for _, mapping in ipairs(mappings) do
+    for _, mode in ipairs(mapping[1]) do
+      pcall(vim.keymap.del, mode, mapping[2])
+    end
+  end
+  mappings = {}
+end
+
 return M

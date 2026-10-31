@@ -7,6 +7,9 @@ function M.setup(user_config)
   local config = require("sentence-jp.config")
   config.setup(user_config or {})
 
+  -- Remove mappings from a previous setup() so that disabled features and changed keys take effect
+  require("sentence-jp.utils").unmap_all()
+
   -- 2. Setup text objects
   if config.get().textobject.enable then
     require("sentence-jp.textobjects").setup()

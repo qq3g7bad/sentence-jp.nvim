@@ -161,7 +161,7 @@ function M.setup_motions()
   local prev_key = config.motions.prev_sentence
 
   -- Set up motions for normal, visual, and operator-pending modes
-  vim.keymap.set({ "n", "x", "o" }, next_key, function()
+  require("sentence-jp.utils").map({ "n", "x", "o" }, next_key, function()
     M.next_sentence()
   end, {
     noremap = true,
@@ -169,7 +169,7 @@ function M.setup_motions()
     desc = "Next sentence (JP/EN)",
   })
 
-  vim.keymap.set({ "n", "x", "o" }, prev_key, function()
+  require("sentence-jp.utils").map({ "n", "x", "o" }, prev_key, function()
     M.prev_sentence()
   end, {
     noremap = true,
