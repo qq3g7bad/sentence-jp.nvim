@@ -1,10 +1,12 @@
 local M = {}
 
+local space_regex = vim.regex("\\s")
+
 --- Check if a character is a whitespace character (including fullwidth space)
 --- @param ch string Character to check
 --- @return boolean True if character is whitespace
 local function is_space_char(ch)
-  return vim.regex("\\s"):match_str(ch) ~= nil or ch == "　"
+  return space_regex:match_str(ch) ~= nil or ch == "　"
 end
 
 --- Check if character at offset from cursor is a space

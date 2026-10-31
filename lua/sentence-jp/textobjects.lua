@@ -3,36 +3,19 @@ local M = {}
 --- Select a visual range in the buffer
 --- @param start_pos table Position {line, col} for start of selection
 --- @param end_pos table Position {line, col} for end of selection
---- @param linewise? boolean If true, use linewise visual mode
-local function select_range(start_pos, end_pos, linewise)
+local function select_range(start_pos, end_pos)
   local mode = vim.fn.mode()
   local is_visual = mode == "v" or mode == "V" or mode == "\22"
 
   if is_visual then
-    local s_col = (start_pos[2] or 0) + 1
-    local e_col = (end_pos[2] or 0) + 1
-    if linewise then
-      s_col = 1
-      e_col = 1
-    end
-
-    vim.fn.setpos("'<", { 0, start_pos[1], s_col, 0 })
-    vim.fn.setpos("'>", { 0, end_pos[1], e_col, 0 })
+    vim.fn.setpos("'<", { 0, start_pos[1], start_pos[2] + 1, 0 })
+    vim.fn.setpos("'>", { 0, end_pos[1], end_pos[2] + 1, 0 })
     vim.cmd("normal! gv")
-
-    if linewise and mode ~= "V" then
-      vim.cmd("normal! V")
-    end
-
     return
   end
 
   vim.api.nvim_win_set_cursor(0, start_pos)
-  if linewise then
-    vim.cmd("normal! V")
-  else
-    vim.cmd("normal! v")
-  end
+  vim.cmd("normal! v")
   vim.api.nvim_win_set_cursor(0, end_pos)
 end
 
@@ -67,7 +50,7 @@ function M.select_inner_sentence()
     return
   end
 
-  select_range(boundaries.start, boundaries.end_inner, boundaries.linewise)
+  select_range(boundaries.start, boundaries.end_inner)
 end
 
 --- Select around sentence (includes punctuation and trailing whitespace, or leading whitespace if none)
@@ -79,7 +62,7 @@ function M.select_around_sentence()
     return
   end
 
-  select_range(boundaries.start_around, boundaries.end_around, boundaries.linewise)
+  select_range(boundaries.start_around, boundaries.end_around)
 end
 
 --- Setup text object keymaps for sentence selection
