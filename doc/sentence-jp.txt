@@ -113,6 +113,17 @@ Configuration options:
     include_fullwidth_space
         Treat fullwidth space (　) as whitespace (default: true)
 
+    punctuation.closing
+        Closing brackets/quotes that may follow sentence-ending
+        punctuation (default: '[」』）】〉》〕］｝"\'”’)\\]]')
+
+    quote_aware
+        When true (default), "。」" ends a sentence only if the closer is
+        followed by end of line, whitespace, another ending or an opening
+        bracket. "彼は「行く。」と言った。" is one sentence, while
+        "「はい。」「いいえ。」" is two.
+        When false, "。」" always ends a sentence.
+
 Examples: >
     -- Add more punctuation marks
     require('sentence-jp').setup({

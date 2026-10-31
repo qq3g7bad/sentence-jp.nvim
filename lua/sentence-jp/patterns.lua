@@ -98,8 +98,8 @@ local function normalize_bounds(start_line, end_line)
   return start_line, end_line
 end
 
---- Closing brackets/quotes that may follow English sentence-ending punctuation (as in Vim's 'sentence')
-local EN_CLOSERS = "[)\\]\"'”’]"
+--- Opening brackets that may follow a closer at a sentence end (e.g. "「はい。」「いいえ。」")
+local OPENERS = "[「『（【〈《〔［｛(\\[]"
 
 --- Extract the body of a bracket expression (e.g. "[。！？]" -> "。！？")
 --- @param pattern string Vim regex character class
@@ -110,6 +110,8 @@ end
 
 --- Build a Vim regex matching one sentence ending (the whole punctuation run)
 --- Japanese punctuation always ends a sentence, even when followed by other text (e.g. "。次").
+--- With quote_aware, closers after it ("。」") are included only when followed by end of line,
+--- whitespace, another ending or an opening bracket; otherwise ("。」と言った") it is not an ending.
 --- English punctuation ends a sentence only when followed by end of line or whitespace,
 --- optionally after closing brackets/quotes, so "0.11", "a.b" and "init.lua" are not split.
 --- @param config table Configuration containing punctuation patterns
@@ -118,16 +120,24 @@ function M.build_end_pattern(config)
   local jp_chars = class_body(config.punctuation.sentence_endings_jp or "[。！？．]")
   local en_chars = class_body(config.punctuation.sentence_endings_en or "[.!?]")
   local all = "[" .. jp_chars .. en_chars .. "]"
+  local closing = config.punctuation.closing or "[」』）】〉》〕］｝\"'”’)\\]]"
   local space = config.include_fullwidth_space and "[[:space:]　]" or "[[:space:]]"
 
   local branches = {}
   if jp_chars ~= "" then
     -- A run containing at least one Japanese mark (e.g. "。。。", "？!")
-    table.insert(branches, all .. "*[" .. jp_chars .. "]" .. all .. "*")
+    local run = all .. "*[" .. jp_chars .. "]" .. all .. "*"
+    if config.quote_aware == false then
+      table.insert(branches, run .. closing .. "*")
+    else
+      local after_closer = "\\%($\\|" .. space .. "\\|" .. all .. "\\|" .. OPENERS .. "\\)\\@="
+      -- Either closers that end the quote, or no closer at all ("。」と" does not match)
+      table.insert(branches, run .. "\\%(" .. closing .. "\\+" .. after_closer .. "\\|" .. closing .. "\\@!\\)")
+    end
   end
   if en_chars ~= "" then
     -- An English run followed by optional closers, then end of line or whitespace
-    table.insert(branches, all .. "\\+" .. EN_CLOSERS .. "*\\%($\\|" .. space .. "\\)\\@=")
+    table.insert(branches, all .. "\\+" .. closing .. "*\\%($\\|" .. space .. "\\)\\@=")
   end
 
   return "\\%(" .. table.concat(branches, "\\|") .. "\\)"

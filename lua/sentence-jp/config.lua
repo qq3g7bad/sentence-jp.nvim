@@ -20,13 +20,19 @@ local defaults = {
   -- Finds the NEAREST sentence boundary from cursor position
   -- Japanese: 。！？． (period, exclamation, question, fullwidth period)
   -- English: .!? (period, exclamation, question)
+  -- Closing brackets/quotes that may follow sentence-ending punctuation (e.g. "。」", ".)")
   punctuation = {
     sentence_endings_jp = "[。！？．]",
     sentence_endings_en = "[.!?]",
+    closing = "[」』）】〉》〕］｝\"'”’)\\]]",
   },
 
   -- Behavior
   include_fullwidth_space = true,
+  -- Treat "。」" as the end of a sentence only when the closer is followed by end of line,
+  -- whitespace, another ending or an opening bracket. "「行く。」と言った。" stays one sentence.
+  -- false: "。」" always ends a sentence.
+  quote_aware = true,
 }
 
 local config = vim.deepcopy(defaults)
@@ -68,11 +74,15 @@ function M.validate(cfg)
     if type(cfg.punctuation) ~= "table" then
       return false
     end
-    for _, field in ipairs({ "sentence_endings_jp", "sentence_endings_en" }) do
+    for _, field in ipairs({ "sentence_endings_jp", "sentence_endings_en", "closing" }) do
       if cfg.punctuation[field] and type(cfg.punctuation[field]) ~= "string" then
         return false
       end
     end
+  end
+
+  if cfg.quote_aware ~= nil and type(cfg.quote_aware) ~= "boolean" then
+    return false
   end
 
   return true

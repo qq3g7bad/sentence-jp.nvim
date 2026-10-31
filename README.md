@@ -108,6 +108,20 @@ require('sentence-jp').setup({
 })
 ```
 
+### かぎ括弧・閉じ括弧
+
+`彼は「行く。」と言った。` のように、句読点の直後に閉じ括弧があり、その後ろに文が続く場合は、引用内の句読点とみなして文を区切りません。
+閉じ括弧の後ろが行末・空白・別の句読点・開き括弧（`「はい。」「いいえ。」`）なら、閉じ括弧までを 1 文とします。
+
+```lua
+require('sentence-jp').setup({
+  punctuation = {
+    closing = '[」』）】〉》〕］｝"\'”’)\\]]',  -- 閉じ括弧として扱う文字（既定値）
+  },
+  quote_aware = false,  -- 「。」」の直後で常に文を区切る（既定: true）
+})
+```
+
 ### 異なるモーションキー
 
 ```lua
@@ -272,6 +286,20 @@ require('sentence-jp').setup({
   punctuation = {
     sentence_endings = '[。！？．.!?‼⁉]',  -- Add double marks
   },
+})
+```
+
+### Quotes and Closing Brackets
+
+When a closing bracket follows sentence-ending punctuation and the sentence continues after it (`彼は「行く。」と言った。`), the punctuation is treated as part of a quote and does not end the sentence.
+If the closer is followed by end of line, whitespace, another ending or an opening bracket (`「はい。」「いいえ。」`), the sentence ends after the closer.
+
+```lua
+require('sentence-jp').setup({
+  punctuation = {
+    closing = '[」』）】〉》〕］｝"\'”’)\\]]',  -- characters treated as closers (default)
+  },
+  quote_aware = false,  -- always end the sentence after "。」" (default: true)
 })
 ```
 
