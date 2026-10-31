@@ -84,9 +84,12 @@ setup({config})
         prev_sentence = '(',
       },
       punctuation = {
-        sentence_endings = '[。！？．.!?]',
+        sentence_endings_jp = '[。！？．]',
+        sentence_endings_en = '[.!?]',
+        closing = '[」』）】〉》〕］｝"\'”’)\\]]',
       },
       include_fullwidth_space = true,
+      quote_aware = true,
     }
 <
 
@@ -104,11 +107,15 @@ setup({config})
     motions.prev_sentence
         前の文へのモーションのキーマッピング (デフォルト: '(')
 
-    punctuation.sentence_endings
-        文末句読点にマッチするパターン
-        (デフォルト: '[。！？．.!?]')
-        日本語と英語の両方の句読点を含みます。
-        英語 (. ! ?) と同様に、これらの記号のみが文を終了します。
+    punctuation.sentence_endings_jp
+        和文の文末句読点 (文字クラス、デフォルト: '[。！？．]')
+        後続の文字によらず常に文末になります。
+
+    punctuation.sentence_endings_en
+        英文の文末句読点 (文字クラス、デフォルト: '[.!?]')
+        直後が行末・空白のときだけ文末になります。
+
+        これらの記号のみが文を終了します。
         読点 (、) は英語のカンマ (,) と同様に無視されます。
 
     include_fullwidth_space
@@ -129,7 +136,7 @@ setup({config})
     -- 句読点を追加
     require('sentence-jp').setup({
       punctuation = {
-        sentence_endings = '[。！？．.!?‼⁉]',  -- 二重記号を追加
+        sentence_endings_jp = '[。！？．‼⁉]',  -- 二重記号を追加
       },
     })
 
@@ -253,9 +260,9 @@ as                      "around sentence" - 句読点と後続の空白を含む
     " バッファ: 最初の文です。次の文です。最後の文です。
 
     " カーソルが "最初" 上にある場合
-    vis     " 選択: 最初の文です
+    vis     " 選択: 最初の文です。
     )       " "次の文です" に移動
-    2)      " "最後の文です" に移動
+    )       " "最後の文です" に移動
     (       " "次の文です" に戻る
 <
 
@@ -263,7 +270,7 @@ as                      "around sentence" - 句読点と後続の空白を含む
     " バッファ: First sentence. Second sentence. Third sentence.
 
     " カーソルが "First" 上にある場合
-    vis     " 選択: First sentence
+    vis     " 選択: First sentence.
     )       " "Second sentence" に移動
 <
 
@@ -278,7 +285,7 @@ as                      "around sentence" - 句読点と後続の空白を含む
     -- 絵文字句読点バリアントを追加
     require('sentence-jp').setup({
       punctuation = {
-        sentence_endings = '[。！？．.!?‼⁉⁈]',
+        sentence_endings_jp = '[。！？．‼⁉⁈]',
       },
     })
 

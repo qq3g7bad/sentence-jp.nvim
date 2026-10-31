@@ -83,9 +83,12 @@ setup({config})
         prev_sentence = '(',
       },
       punctuation = {
-        sentence_endings = '[。！？．.!?]',
+        sentence_endings_jp = '[。！？．]',
+        sentence_endings_en = '[.!?]',
+        closing = '[」』）】〉》〕］｝"\'”’)\\]]',
       },
       include_fullwidth_space = true,
+      quote_aware = true,
     }
 <
 
@@ -103,11 +106,16 @@ Configuration options:
     motions.prev_sentence
         Key mapping for previous sentence motion (default: '(')
 
-    punctuation.sentence_endings
-        Pattern matching sentence-ending punctuation
-        (default: '[。！？．.!?]')
-        Includes both Japanese and English punctuation.
-        Like English (. ! ?), only these marks end sentences.
+    punctuation.sentence_endings_jp
+        Japanese sentence-ending punctuation, as a character class
+        (default: '[。！？．]'). Always ends a sentence.
+
+    punctuation.sentence_endings_en
+        English sentence-ending punctuation, as a character class
+        (default: '[.!?]'). Ends a sentence only when followed by end of
+        line or whitespace.
+
+        Only these marks end sentences.
         Commas (、) are ignored, just like English commas (,).
 
     include_fullwidth_space
@@ -128,7 +136,7 @@ Examples: >
     -- Add more punctuation marks
     require('sentence-jp').setup({
       punctuation = {
-        sentence_endings = '[。！？．.!?‼⁉]',  -- Add double marks
+        sentence_endings_jp = '[。！？．‼⁉]',  -- Add double marks
       },
     })
 
@@ -251,9 +259,9 @@ Pure Japanese: >
     " Buffer: 最初の文です。次の文です。最後の文です。
 
     " Cursor on "最初"
-    vis     " Select: 最初の文です
+    vis     " Select: 最初の文です。
     )       " Move to "次の文です"
-    2)      " Move to "最後の文です"
+    )       " Move to "最後の文です"
     (       " Move back to "次の文です"
 <
 
@@ -261,7 +269,7 @@ Pure English: >
     " Buffer: First sentence. Second sentence. Third sentence.
 
     " Cursor on "First"
-    vis     " Select: First sentence
+    vis     " Select: First sentence.
     )       " Move to "Second sentence"
 <
 
@@ -276,7 +284,7 @@ Advanced configuration: >
     -- Add emoji punctuation variants
     require('sentence-jp').setup({
       punctuation = {
-        sentence_endings = '[。！？．.!?‼⁉⁈]',
+        sentence_endings_jp = '[。！？．‼⁉⁈]',
       },
     })
 

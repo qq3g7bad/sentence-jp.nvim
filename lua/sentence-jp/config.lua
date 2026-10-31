@@ -40,6 +40,11 @@ local config = vim.deepcopy(defaults)
 --- Setup configuration with user overrides
 --- @param user_config? table User configuration to merge with defaults
 function M.setup(user_config)
+  local unknown = M.unknown_keys(user_config or {}, defaults)
+  if #unknown > 0 then
+    vim.notify("sentence-jp: Unknown option(s): " .. table.concat(unknown, ", "), vim.log.levels.WARN)
+  end
+
   config = vim.tbl_deep_extend("force", defaults, user_config or {})
 
   if not M.validate(config) then
@@ -52,6 +57,30 @@ end
 --- @return table The current configuration table
 function M.get()
   return config
+end
+
+--- Collect option paths in `user` that do not exist in `reference` (e.g. "punctuation.sentence_endings")
+--- @param user table User configuration
+--- @param reference table Configuration with all known keys
+--- @param prefix? string Path prefix for nested keys
+--- @return string[] Sorted list of unknown option paths
+function M.unknown_keys(user, reference, prefix)
+  local unknown = {}
+  if type(user) ~= "table" then
+    return unknown
+  end
+
+  for key, value in pairs(user) do
+    local path = (prefix or "") .. tostring(key)
+    if reference[key] == nil then
+      table.insert(unknown, path)
+    elseif type(value) == "table" and type(reference[key]) == "table" then
+      vim.list_extend(unknown, M.unknown_keys(value, reference[key], path .. "."))
+    end
+  end
+
+  table.sort(unknown)
+  return unknown
 end
 
 --- Validate configuration structure

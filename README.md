@@ -29,9 +29,9 @@
 ```
 
 - カーソルが "English" 上にある場合 → "vis" を押すと:
-  - ✓  "This is English" を選択 (最も近い境界: 左側は "。", 右側は ".")
+  - ✓  "This is English." を選択 (最も近い境界: 左側は "。", 右側は ".")
 - カーソルが "日本語" 上にある場合 → "vis" を押すと:
-  - ✓  "これは日本語です" を選択 (最も近い境界: 両方とも "。")
+  - ✓  "これは日本語です。" を選択 (最も近い境界: 両方とも "。")
 - カーソルが "句読点" 上にある場合 → "vis" を押すと:
   - ✓  "連続した句読点や改行にも対応します。。。" を選択。
 
@@ -103,7 +103,8 @@ First. 最初の文。次の文。Last.
 ```lua
 require('sentence-jp').setup({
   punctuation = {
-    sentence_endings = '[。！？．.!?‼⁉]',  -- 絵文字を追加
+    sentence_endings_jp = '[。！？．‼⁉]',  -- 和文の文末に ‼ ⁉ を追加
+    -- sentence_endings_en = '[.!?]',     -- 英文の文末 (既定値)
   },
 })
 ```
@@ -200,9 +201,9 @@ Whichever punctuation is NEAREST to your cursor is used for boundaries.
 ```
 
 - Cursor on "English" → Press "vis":
-  - ✓  Selects "This is English" (nearest boundaries: 。and .)
+  - ✓  Selects "This is English." (nearest boundaries: 。and .)
 - Cursor on "日本語" → Press "vis":
-  - ✓  Selects "これは日本語です" (nearest boundaries: both 。)
+  - ✓  Selects "これは日本語です。" (nearest boundaries: both 。)
 - Cursor on "句読点" → Press "vis":
   - ✓  Selects "連続した句読点や改行にも対応します。。。"
 
@@ -284,7 +285,8 @@ Want to add more punctuation marks?
 ```lua
 require('sentence-jp').setup({
   punctuation = {
-    sentence_endings = '[。！？．.!?‼⁉]',  -- Add double marks
+    sentence_endings_jp = '[。！？．‼⁉]',  -- add ‼ ⁉ as Japanese sentence endings
+    -- sentence_endings_en = '[.!?]',     -- English sentence endings (default)
   },
 })
 ```
