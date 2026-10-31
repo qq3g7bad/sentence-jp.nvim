@@ -149,7 +149,30 @@ require('sentence-jp').setup({
     next_sentence = ']s',  -- ) の代わりに ]s を使用
     prev_sentence = '[s',  -- ( の代わりに [s を使用
   },
+  textobject = {
+    keys = { inner = 'ij', around = 'aj' },  -- is / as の代わりに ij / aj を使用
+  },
 })
+```
+
+### ファイルタイプを限定
+
+既定では `(` `)` `is` `as` をすべてのバッファで上書きします。コードを書くときに Vim 標準の挙動を残したい場合は、対象のファイルタイプを指定してください（バッファローカルにマップします）。
+
+```lua
+require('sentence-jp').setup({
+  filetypes = { 'markdown', 'text' },  -- 既定: nil (すべてのバッファ)
+})
+```
+
+### `<Plug>` マップ
+
+`<Plug>(sentence-jp-inner)`、`<Plug>(sentence-jp-around)`、`<Plug>(sentence-jp-next)`、`<Plug>(sentence-jp-prev)` を常に定義します。既定のキーを無効にして、自分でマップできます。
+
+```lua
+require('sentence-jp').setup({ textobject = { enable = false } })
+vim.keymap.set({ 'o', 'x' }, 'ij', '<Plug>(sentence-jp-inner)', { remap = true })
+vim.keymap.set({ 'o', 'x' }, 'aj', '<Plug>(sentence-jp-around)', { remap = true })
 ```
 
 ### 機能を無効化
@@ -351,7 +374,30 @@ require('sentence-jp').setup({
     next_sentence = ']s',  -- Use ]s instead of )
     prev_sentence = '[s',  -- Use [s instead of (
   },
+  textobject = {
+    keys = { inner = 'ij', around = 'aj' },  -- Use ij / aj instead of is / as
+  },
 })
+```
+
+### Limit to Filetypes
+
+By default, `(` `)` `is` `as` are overridden in every buffer. To keep Vim's defaults while coding, list the filetypes to enable (mapped buffer-locally).
+
+```lua
+require('sentence-jp').setup({
+  filetypes = { 'markdown', 'text' },  -- default: nil (all buffers)
+})
+```
+
+### `<Plug>` Mappings
+
+`<Plug>(sentence-jp-inner)`, `<Plug>(sentence-jp-around)`, `<Plug>(sentence-jp-next)` and `<Plug>(sentence-jp-prev)` are always defined. Disable the default keys and map them yourself:
+
+```lua
+require('sentence-jp').setup({ textobject = { enable = false } })
+vim.keymap.set({ 'o', 'x' }, 'ij', '<Plug>(sentence-jp-inner)', { remap = true })
+vim.keymap.set({ 'o', 'x' }, 'aj', '<Plug>(sentence-jp-around)', { remap = true })
 ```
 
 ### Disable Features

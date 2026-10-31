@@ -86,27 +86,49 @@ function M.sentence_at(pos)
   return boundaries, start_line, end_line
 end
 
---- Mappings created by the plugin, as {modes, lhs} pairs
+--- Mappings created by the plugin, as {modes, lhs, buffer} entries (buffer is nil for global mappings)
 local mappings = {}
 
---- Create a keymap and remember it so that it can be removed by unmap_all()
+--- Create a keymap and remember it so that it can be removed by unmap_all() / unmap_buffer()
 --- @param modes string[] Modes
 --- @param lhs string Left-hand side
 --- @param rhs function Callback
---- @param opts table Options passed to vim.keymap.set()
+--- @param opts table Options passed to vim.keymap.set() (opts.buffer makes it buffer-local)
 function M.map(modes, lhs, rhs, opts)
   vim.keymap.set(modes, lhs, rhs, opts)
-  table.insert(mappings, { modes, lhs })
+  table.insert(mappings, { modes, lhs, opts.buffer })
+end
+
+--- Remove keymaps created by map() for which `should_remove(buffer)` is true
+--- @param should_remove function Function(buffer) returning true to remove the mapping
+local function unmap_if(should_remove)
+  local kept = {}
+  for _, mapping in ipairs(mappings) do
+    local modes, lhs, buffer = mapping[1], mapping[2], mapping[3]
+    if should_remove(buffer) then
+      for _, mode in ipairs(modes) do
+        pcall(vim.keymap.del, mode, lhs, { buffer = buffer })
+      end
+    else
+      table.insert(kept, mapping)
+    end
+  end
+  mappings = kept
 end
 
 --- Remove all keymaps created by map()
 function M.unmap_all()
-  for _, mapping in ipairs(mappings) do
-    for _, mode in ipairs(mapping[1]) do
-      pcall(vim.keymap.del, mode, mapping[2])
-    end
-  end
-  mappings = {}
+  unmap_if(function()
+    return true
+  end)
+end
+
+--- Remove the buffer-local keymaps created by map() for a buffer
+--- @param buffer number Buffer handle
+function M.unmap_buffer(buffer)
+  unmap_if(function(mapped_buffer)
+    return mapped_buffer == buffer
+  end)
 end
 
 return M

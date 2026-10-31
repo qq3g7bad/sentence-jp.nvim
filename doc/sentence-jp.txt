@@ -76,6 +76,7 @@ setup({config})
     {
       textobject = {
         enable = true,
+        keys = { inner = 'is', around = 'as' },
       },
       motions = {
         enable = true,
@@ -90,6 +91,7 @@ setup({config})
       },
       include_fullwidth_space = true,
       quote_aware = true,
+      filetypes = nil,
     }
 <
 
@@ -97,6 +99,26 @@ Configuration options:
 
     textobject.enable
         Enable text object functionality (default: true)
+
+    textobject.keys
+        Keys for the text objects
+        (default: { inner = 'is', around = 'as' })
+
+    filetypes
+        List of filetypes to map the keys in, e.g. { 'markdown', 'text' }.
+        The keys are then buffer-local. nil (default) maps them in all
+        buffers.
+
+    <Plug> mappings                                     *sentence-jp-<Plug>*
+        Always defined, even when the default keys are disabled:
+            <Plug>(sentence-jp-inner)     is  (operator-pending, visual)
+            <Plug>(sentence-jp-around)    as  (operator-pending, visual)
+            <Plug>(sentence-jp-next)      )   (normal, visual, op-pending)
+            <Plug>(sentence-jp-prev)      (   (normal, visual, op-pending)
+        Example: >
+            vim.keymap.set({ 'o', 'x' }, 'ij', '<Plug>(sentence-jp-inner)',
+              { remap = true })
+<
 
     motions.enable
         Enable motion commands (default: true)

@@ -77,6 +77,7 @@ setup({config})
     {
       textobject = {
         enable = true,
+        keys = { inner = 'is', around = 'as' },
       },
       motions = {
         enable = true,
@@ -91,6 +92,7 @@ setup({config})
       },
       include_fullwidth_space = true,
       quote_aware = true,
+      filetypes = nil,
     }
 <
 
@@ -98,6 +100,26 @@ setup({config})
 
     textobject.enable
         テキストオブジェクト機能を有効化 (デフォルト: true)
+
+    textobject.keys
+        テキストオブジェクトのキー
+        (デフォルト: { inner = 'is', around = 'as' })
+
+    filetypes
+        キーをマップするファイルタイプのリスト (例: { 'markdown', 'text' })。
+        指定するとバッファローカルにマップします。nil (デフォルト) なら
+        すべてのバッファでマップします。
+
+    <Plug> マップ                                       *sentence-jp-<Plug>*
+        既定のキーを無効にしても常に定義されます:
+            <Plug>(sentence-jp-inner)     is  (オペレータ待機、ビジュアル)
+            <Plug>(sentence-jp-around)    as  (オペレータ待機、ビジュアル)
+            <Plug>(sentence-jp-next)      )   (ノーマル、ビジュアル、オペレータ待機)
+            <Plug>(sentence-jp-prev)      (   (ノーマル、ビジュアル、オペレータ待機)
+        例: >
+            vim.keymap.set({ 'o', 'x' }, 'ij', '<Plug>(sentence-jp-inner)',
+              { remap = true })
+<
 
     motions.enable
         モーションコマンドを有効化 (デフォルト: true)

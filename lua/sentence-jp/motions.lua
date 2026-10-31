@@ -119,33 +119,49 @@ function M.prev_sentence(count)
   move(prev_start, count or vim.v.count1)
 end
 
+--- Motions: {key name in config.motions, <Plug> name, callback, description}
+local motions = {
+  {
+    "next_sentence",
+    "<Plug>(sentence-jp-next)",
+    function()
+      M.next_sentence()
+    end,
+    "Next sentence (JP/EN)",
+  },
+  {
+    "prev_sentence",
+    "<Plug>(sentence-jp-prev)",
+    function()
+      M.prev_sentence()
+    end,
+    "Previous sentence (JP/EN)",
+  },
+}
+
+--- Define the <Plug> mappings (always available, even when motions.enable is false)
+function M.setup_plug()
+  for _, motion in ipairs(motions) do
+    utils.map({ "n", "x", "o" }, motion[2], motion[3], { silent = true, desc = motion[4] })
+  end
+end
+
 --- Setup motion keymaps for sentence navigation
-function M.setup_motions()
+--- @param buffer? number Buffer handle for buffer-local mappings (nil for global)
+function M.setup_motions(buffer)
   local config = require("sentence-jp.config").get()
 
   if not config.motions.enable then
     return
   end
 
-  local next_key = config.motions.next_sentence
-  local prev_key = config.motions.prev_sentence
-
   -- Set up motions for normal, visual, and operator-pending modes
-  utils.map({ "n", "x", "o" }, next_key, function()
-    M.next_sentence()
-  end, {
-    noremap = true,
-    silent = true,
-    desc = "Next sentence (JP/EN)",
-  })
-
-  utils.map({ "n", "x", "o" }, prev_key, function()
-    M.prev_sentence()
-  end, {
-    noremap = true,
-    silent = true,
-    desc = "Previous sentence (JP/EN)",
-  })
+  for _, motion in ipairs(motions) do
+    local key = config.motions[motion[1]]
+    if key and key ~= "" then
+      utils.map({ "n", "x", "o" }, key, motion[3], { silent = true, buffer = buffer, desc = motion[4] })
+    end
+  end
 end
 
 return M

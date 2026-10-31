@@ -7,17 +7,50 @@ function M.setup(user_config)
   local config = require("sentence-jp.config")
   config.setup(user_config or {})
 
-  -- Remove mappings from a previous setup() so that disabled features and changed keys take effect
-  require("sentence-jp.utils").unmap_all()
+  -- Remove mappings and autocmds from a previous setup() so that changed options take effect
+  local utils = require("sentence-jp.utils")
+  utils.unmap_all()
+  local group = vim.api.nvim_create_augroup("sentence-jp", { clear = true })
 
-  -- 2. Setup text objects
-  if config.get().textobject.enable then
-    require("sentence-jp.textobjects").setup()
+  local textobjects = require("sentence-jp.textobjects")
+  local motions = require("sentence-jp.motions")
+
+  -- 2. <Plug> mappings are always available
+  textobjects.setup_plug()
+  motions.setup_plug()
+
+  -- 3. Default keys for text objects and motions
+  local function map_keys(buffer)
+    textobjects.setup(buffer)
+    motions.setup_motions(buffer)
   end
 
-  -- 3. Setup motion commands
-  if config.get().motions.enable then
-    require("sentence-jp.motions").setup_motions()
+  local filetypes = config.get().filetypes
+  if filetypes == nil then
+    map_keys(nil)
+    return
+  end
+
+  -- Only in the given filetypes, as buffer-local mappings
+  local function update_buffer(buffer)
+    utils.unmap_buffer(buffer)
+    if vim.tbl_contains(filetypes, vim.bo[buffer].filetype) then
+      map_keys(buffer)
+    end
+  end
+
+  vim.api.nvim_create_autocmd("FileType", {
+    group = group,
+    callback = function(args)
+      update_buffer(args.buf)
+    end,
+  })
+
+  -- Buffers already open when setup() runs (e.g. lazy-loaded on VeryLazy)
+  for _, buffer in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(buffer) then
+      update_buffer(buffer)
+    end
   end
 end
 

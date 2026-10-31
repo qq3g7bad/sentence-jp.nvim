@@ -199,30 +199,39 @@ function M.select_around_sentence()
   select_object(true)
 end
 
+--- Text objects: {key name in textobject.keys, <Plug> name, callback, description}
+local objects = {
+  { "inner", "<Plug>(sentence-jp-inner)", M.select_inner_sentence, "Inner sentence (includes punctuation, JP/EN)" },
+  {
+    "around",
+    "<Plug>(sentence-jp-around)",
+    M.select_around_sentence,
+    "Around sentence (with punctuation + space, JP/EN)",
+  },
+}
+
+--- Define the <Plug> mappings (always available, even when textobject.enable is false)
+function M.setup_plug()
+  for _, object in ipairs(objects) do
+    utils.map({ "o", "x" }, object[2], object[3], { silent = true, desc = object[4] })
+  end
+end
+
 --- Setup text object keymaps for sentence selection
-function M.setup()
+--- @param buffer? number Buffer handle for buffer-local mappings (nil for global)
+function M.setup(buffer)
   local config = require("sentence-jp.config").get()
 
   if not config.textobject.enable then
     return
   end
 
-  -- Always use 's' key - works for both Japanese and English!
-  utils.map({ "o", "x" }, "is", function()
-    M.select_inner_sentence()
-  end, {
-    noremap = true,
-    silent = true,
-    desc = "Inner sentence (includes punctuation, JP/EN)",
-  })
-
-  utils.map({ "o", "x" }, "as", function()
-    M.select_around_sentence()
-  end, {
-    noremap = true,
-    silent = true,
-    desc = "Around sentence (with punctuation + space, JP/EN)",
-  })
+  for _, object in ipairs(objects) do
+    local key = config.textobject.keys[object[1]]
+    if key and key ~= "" then
+      utils.map({ "o", "x" }, key, object[3], { silent = true, buffer = buffer, desc = object[4] })
+    end
+  end
 end
 
 return M

@@ -5,6 +5,10 @@ local defaults = {
   -- Always uses 's' key - works for both Japanese and English!
   textobject = {
     enable = true,
+    keys = {
+      inner = "is",
+      around = "as",
+    },
   },
 
   -- Motion settings
@@ -35,7 +39,14 @@ local defaults = {
   -- whitespace, another ending or an opening bracket. "「行く。」と言った。" stays one sentence.
   -- false: "。」" always ends a sentence.
   quote_aware = true,
+
+  -- Filetypes to enable the default keys in, e.g. { "markdown", "text" }.
+  -- nil (default): all buffers. The <Plug> mappings are always global.
+  filetypes = nil,
 }
+
+--- Options whose default is nil (unknown_keys() would not see them in `defaults`)
+local optional_keys = { filetypes = true }
 
 local config = vim.deepcopy(defaults)
 
@@ -82,7 +93,7 @@ function M.unknown_keys(user, reference, prefix)
 
   for key, value in pairs(user) do
     local path = (prefix or "") .. tostring(key)
-    if reference[key] == nil then
+    if reference[key] == nil and not (prefix == nil and optional_keys[key]) then
       table.insert(unknown, path)
     elseif type(value) == "table" and type(reference[key]) == "table" and not islist(reference[key]) then
       vim.list_extend(unknown, M.unknown_keys(value, reference[key], path .. "."))
@@ -127,6 +138,28 @@ function M.validate(cfg)
     end
     for _, abbreviation in ipairs(abbreviations) do
       if type(abbreviation) ~= "string" then
+        return false
+      end
+    end
+  end
+
+  if cfg.textobject and cfg.textobject.keys ~= nil then
+    if type(cfg.textobject.keys) ~= "table" then
+      return false
+    end
+    for _, key in pairs(cfg.textobject.keys) do
+      if type(key) ~= "string" then
+        return false
+      end
+    end
+  end
+
+  if cfg.filetypes ~= nil then
+    if type(cfg.filetypes) ~= "table" then
+      return false
+    end
+    for _, filetype in ipairs(cfg.filetypes) do
+      if type(filetype) ~= "string" then
         return false
       end
     end
