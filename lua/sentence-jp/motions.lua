@@ -130,6 +130,10 @@ local function move(find_target, count)
   end
 
   vim.api.nvim_win_set_cursor(0, origin)
+  if vim.fn.mode() == "n" and (cursor[1] ~= origin[1] or cursor[2] ~= origin[2]) then
+    -- Like Vim's "(" and ")", record the position in the jumplist
+    vim.cmd("normal! m'")
+  end
   if inclusive and vim.fn.mode(1):sub(1, 2) == "no" then
     -- Operator-pending: select up to and including the last character (e.g. "d)" on the last sentence)
     vim.cmd("normal! v")
